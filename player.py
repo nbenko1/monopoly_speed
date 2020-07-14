@@ -1,6 +1,7 @@
 #this is a basic player class, holds money, cards, 
 #will be superclass for more complex players
 
+import time
 
 class Player:
     def __init__(self, player_id):
@@ -38,6 +39,9 @@ class Player:
 
     #moves player, adds money if passed go
     def move(self, role):
+
+        time.sleep(3)
+
         self.roles.append(role) # adds role to record
         num = role
         old_tile = self.tile
@@ -50,7 +54,14 @@ class Player:
 
         self.path.append(self.tile) # keeps track of where the player went
     
+    def canPurchase(self, b):
 
+        time.sleep(5)
+
+        tile = b.getTile(self.tile)
+        tile[1] = self.id
+        self.money -= 1000
+        self.properties.append(tile[0]) # saves property id to player
 
     
     
