@@ -40,7 +40,7 @@ class Player:
     #moves player, adds money if passed go
     def move(self, role):
 
-        time.sleep(3)
+        time.sleep(3) #not final number, just for testing
 
         self.roles.append(role) # adds role to record
         num = role
@@ -54,17 +54,19 @@ class Player:
 
         self.path.append(self.tile) # keeps track of where the player went
     
+
+    #when the player lands on a property this method handles whether or not to buy it
     def canPurchase(self, b):
 
-        time.sleep(5)
+        time.sleep(5) # arbitrary
 
         tile = b.getTile(self.tile)
         tile[1] = self.id
         self.money -= 1000
         self.properties.append(tile[0]) # saves property id to player
 
+    # at the end of the game this method will look at the cards and calculate how much money was made
+    def calculateMoney(self):
+        #TODO
+        pass
     
-    
-    #def visitProperty(self, property): 
-
-    #def buyProperty(self, property):

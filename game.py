@@ -1,32 +1,58 @@
-# this keeps track of the game state, calls update methods and maintains board
-# will this be a class? -heh no
+#QUICK RUNDOWN
+# this file sets up a global board object and player objects for each game instance,
+# it then creates threads for each player and runs the game on the shared board
+# the individual player classes handle how long each action takes  --- (so far I only have the one)
+# but there is an global timer that controls how long the game lasts
+# each player gets its own thread so they all run at their own speed, this is cool but causes a MESS of the print statements 
+#       so for testing should probably look at one agent at a time
 
+#TODO chance card class
+#TODO community chest card class
+#TODO Add mutex lock around global board object
+#TODO Add method in the player class that adds up all money at the end of the game - needs cards first
+#TODO Print data to CSV at end of the game
+
+#TODO python logging class ?? i dont know what this is but it sounds promising
+
+#this is where the magic happens, run this file to run the simulation
+
+#custom classes
 import player
 import board
 
+#Python libraries
 import random
 import time
-
-# add multithreading
-# differintiate between player types  -> superclass?
-# how to control timing - player class has 'wait' commands
-# board is a global variable
-    #info per tile = [id, players on spot, owner], freq player 1, freq player 2]
-
-print(time.time())
+import threading
 
 
 
 #initialize board
 b = board.Board()
-rounds = 10
+rounds = 10 #for testing
 players = []
 
 
-player = player.Player(1)
-players.append(player)
+#this is gross
+#initialize players
+# player1 = player.Player(1)
+# player2 = player.Player(2)
+# player1.startingPos = 0
+# player2.startingPos = 16
+# players.append(player1)
+# players.append(player2)
 
-def gameSetup():
+#automates
+numPlayers = 2
+for x in range(numPlayers):
+    playerX = player.Player(x+1)
+    playerX.startingPos = 0
+    players.append(playerX)
+
+
+
+
+def gameSetup(players):
     #initialize player(s)
     for player in players:
         player.money += 5000 # starts with 5000
@@ -34,21 +60,18 @@ def gameSetup():
             player.chance.append("random chance card") # four chance cards
             if cards < 3:
                 player.chance.append("random community chest card") # three community chest cards
-        player.startingPos = 16 # where to start
+        #player.startingPos = 16 # where to start
 
- 
-curTime = time.time() #start time
-endTime = curTime + 30.0 # end time
+
    
 #runs the game
-def main():
+def main(player):
     print("--------------")
-    print("STARTING GAME")
+    print("STARTING GAME FOR PLAYER", player.id)
     print("--------------")
 
     global curTime
     player.tile = player.startingPos
-
 
     loop = 1
     # for _ in range(0,rounds):
@@ -57,7 +80,7 @@ def main():
         #role phase
         role = random.randint(1,6)
         player.move(role)
-        print("player moved to", player.tile)
+        print("player", player.id, "moved to", player.tile)
 
         #tile action phase
         if player.tile == 24: #on go to jail 
@@ -88,25 +111,47 @@ def main():
 
 
 
+
+
 #prints out stats from the game
-def stats():
+#TODO save to CSV at some point
+def stats(players): 
+
     print("--------------")
     print("STATS")
     print("--------------")
 
-    print("player one starting position:", player.startingPos)
-    print("money:", player.money)
-    print("number of roles:", rounds)
-    print("roles:", player.roles)
-    print("path:", player.path)
-    print("properties:", player.properties)
-    print("--------------")
+    for player in players:
+
+        print("PLAYER", player.id)
+        print("player one starting position:", player.startingPos)
+        print("money:", player.money)
+        print("number of roles:", rounds)
+        print("roles:", player.roles)
+        print("path:", player.path)
+        print("properties:", player.properties)
+        print("--------------")
     #print(b.tiles)
 
 
 
 
+gameSetup(players) #setup players
 
-gameSetup()
-main()
-stats()
+#start game timer
+curTime = time.time() 
+endTime = curTime + 30.0 
+
+#jenky multithreading but it kinda works.. just ignore the print statement mess
+threads = list()
+for player in players: #runs once for each player
+    playerThread = threading.Thread(target=main, args=(player,)) #creates thread at main()
+    threads.append(playerThread) #adds to list
+    playerThread.start() #starts
+
+for index, thread in enumerate(threads):
+    thread.join() #rejoin threads
+
+
+
+stats(players)
