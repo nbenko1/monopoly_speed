@@ -6,11 +6,14 @@
 # each player gets its own thread so they all run at their own speed, this is cool but causes a MESS of the print statements 
 #       so for testing should probably look at one agent at a time
 
-#TODO chance card class
-#TODO community chest card class
-#TODO Add mutex lock around global board object
-#TODO Add method in the player class that adds up all money at the end of the game - needs cards first
+#TODO -- Add mutex lock around global board object
+#TODO - chance card class
+#TODO - community chest card class
+#TODO Add method in the player class that adds up all money at the end of the game - need cards first
 #TODO Print data to CSV at end of the game
+#TODO stats for each round - total at end
+#TODO with and without chance cards
+#TODO print board in a readable format
 
 #TODO python logging class ?? i dont know what this is but it sounds promising
 
@@ -24,16 +27,19 @@ import board
 import random
 import time
 import threading
+import sys #for atomic print commands
 
-
+block = threading.Lock()
 
 #initialize board
 b = board.Board()
 rounds = 10 #for testing
 players = []
+gameLength = 30.0
 
 
-#this is gross
+#this is gross but lets you specify different starting positions
+
 #initialize players
 # player1 = player.Player(1)
 # player2 = player.Player(2)
@@ -60,51 +66,57 @@ def gameSetup(players):
             player.chance.append("random chance card") # four chance cards
             if cards < 3:
                 player.chance.append("random community chest card") # three community chest cards
-        #player.startingPos = 16 # where to start
 
 
    
 #runs the game
 def main(player):
-    print("--------------")
-    print("STARTING GAME FOR PLAYER", player.id)
-    print("--------------")
+    sys.stdout.write("---------------------------" + '\n')
+    sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n')
+    sys.stdout.write("---------------------------" + '\n')
 
     global curTime
     player.tile = player.startingPos
 
     loop = 1
     # for _ in range(0,rounds):
-    while curTime <= endTime:    #this is a little flawed as it lets each turn finish before ending the game, but its only a few extra seconds
-        print("starting round:", loop)
+    while curTime <= endTime:
+        #print("starting round:", loop)
         #role phase
-        role = random.randint(1,6)
+        
+        role = random.randint(1,6) #might move this to the player class
         player.move(role)
-        print("player", player.id, "moved to", player.tile)
+        player.numRoles += 1 #same with this
+
+
+        sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + "\n")
 
         #tile action phase
         if player.tile == 24: #on go to jail 
             player.tile = 8 #reset player position to jail
+            player.path.append(8)
             player.timesJailed += 1 #for player stats
 
         elif player.tile == 0 or player.tile == 16 or player.tile == 8: # if the player is on GO or Jail do nothing
             t = player.tile
             if t == 0 or t == 16:
-                print("player", player.id, "landed on GO")
+                sys.stdout.write("player " + str(player.id) + " landed on GO " + "\n")
             else:
-                print("player", player.id, "is visiting jail")
+                sys.stdout.write("player " + str(player.id) + " is visiting jail " + "\n")
 
         else: #can purchase tile
+            block.acquire() #locks board
+
             purResult = b.purchase(player) #tried to purchase tile from the board object
             if purResult == 2: # successful
-
-                player.canPurchase(b) # purchasing decision is based on the player agent
-
-                print("player", player.id, "bought", player.tile)
+                sys.stdout.write("player " + str(player.id) + " bought " + str(player.tile)  + "\n")
+                player.canPurchase(b)
             elif purResult == 0: # not enough money
-                print("player", player.id, "does not have enough money to buy", player.tile)
+                sys.stdout.write("player " + str(player.id) + " does not have enough money to buy " + str(player.tile)  + "\n")
             else: # already owned
-                print("property already owned")
+                sys.stdout.write("property already owned "  + "\n")
+
+            block.release() # locks board
         loop += 1
         curTime = time.time()
 
@@ -116,22 +128,23 @@ def main(player):
 #prints out stats from the game
 #TODO save to CSV at some point
 def stats(players): 
-
-    print("--------------")
-    print("STATS")
-    print("--------------")
+    print("---------------------------")
+    print("           STATS")
+    print("---------------------------")
 
     for player in players:
 
-        print("PLAYER", player.id)
-        print("player one starting position:", player.startingPos)
-        print("money:", player.money)
-        print("number of roles:", rounds)
-        print("roles:", player.roles)
-        print("path:", player.path)
-        print("properties:", player.properties)
-        print("--------------")
-    #print(b.tiles)
+        print("---- PLAYER", player.id, "----")
+        print("Starting position:", player.startingPos)
+        print("Times passed GO:", player.timesPassedGo)
+        print("Times jailed:", player.timesJailed)
+        print("Money:", player.money)
+        print("Number of roles:", player.numRoles)
+        print("Roles:", player.roles)
+        print("Path:", player.path)
+        print("Properties:", player.properties)
+        print("------------------")
+    print(b.tiles)
 
 
 
@@ -140,18 +153,21 @@ gameSetup(players) #setup players
 
 #start game timer
 curTime = time.time() 
-endTime = curTime + 30.0 
+endTime = curTime + gameLength
 
-#jenky multithreading but it kinda works.. just ignore the print statement mess
+#multithreading - one for each player running at main()
 threads = list()
-for player in players: #runs once for each player
-    playerThread = threading.Thread(target=main, args=(player,)) #creates thread at main()
+for player in players: #creates a thread for each player
+    playerThread = threading.Thread(target=main, args=(player,))
     threads.append(playerThread) #adds to list
-    playerThread.start() #starts
 
-for index, thread in enumerate(threads):
-    thread.join() #rejoin threads
+for playerThread in threads: #starts each thread
+    playerThread.start() #starts each player
 
-
+for index, thread in enumerate(threads): #waits for each thread to end before moving forward
+    thread.join() #shouldn't be necessary but here just in case
 
 stats(players)
+
+
+#save to CSV
