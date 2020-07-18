@@ -15,7 +15,7 @@ class Player:
         #game progress
         self.properties = [] #what properties are owned
         self.chance = [] # chance cards, starts with 3
-        self.comChest = [] #community chest cards, starts with 4
+        self.commChest = [] #community chest cards, starts with 4
         self.bankrupt = False
 
         #stats for reporting

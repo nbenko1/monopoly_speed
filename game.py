@@ -8,7 +8,7 @@
 
 #TODO -- Add mutex lock around global board object
 #TODO - chance card class
-#TODO - xcommunity chest card class
+#TODO - community chest card class
 #TODO Add method in the player class that adds up all money at the end of the game - need cards first
 #TODO Print data to CSV at end of the game
 #TODO stats for each round - total at end
@@ -17,7 +17,14 @@
 
 #TODO python logging class ?? i dont know what this is but it sounds promising
 
+
+
+
 #this is where the magic happens, run this file to run the simulation
+
+
+
+
 
 #custom classes
 import player
@@ -39,10 +46,9 @@ gameLength = 30.0
 
 
 #this is gross but lets you specify different starting positions
-
 #initialize players
-player1 = player.Player(1)
-player2 = player.Player(2)
+player1 = player.Player("JIMMY")
+player2 = player.Player("THERESA")
 player1.startingPos = 0
 player2.startingPos = 16
 players.append(player1)
@@ -73,7 +79,7 @@ def gameSetup(players):
 def main(player):
 
     # sys.stdout.write("-----------------------------------------------" + '\n')
-    sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
+    sys.stdout.write("STARTING GAME FOR " + str(player.id)  + '\n' + '\n')
     # sys.stdout.write("-----------------------------------------------" + '\n')
 
     global curTime
