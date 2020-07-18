@@ -8,7 +8,7 @@
 
 #TODO -- Add mutex lock around global board object
 #TODO - chance card class
-#TODO - community chest card class
+#TODO - xcommunity chest card class
 #TODO Add method in the player class that adds up all money at the end of the game - need cards first
 #TODO Print data to CSV at end of the game
 #TODO stats for each round - total at end
@@ -41,19 +41,19 @@ gameLength = 30.0
 #this is gross but lets you specify different starting positions
 
 #initialize players
-# player1 = player.Player(1)
-# player2 = player.Player(2)
-# player1.startingPos = 0
-# player2.startingPos = 16
-# players.append(player1)
-# players.append(player2)
+player1 = player.Player(1)
+player2 = player.Player(2)
+player1.startingPos = 0
+player2.startingPos = 16
+players.append(player1)
+players.append(player2)
 
-#automates
-numPlayers = 2
-for x in range(numPlayers):
-    playerX = player.Player(x+1)
-    playerX.startingPos = 0
-    players.append(playerX)
+# #automates
+# numPlayers = 2
+# for x in range(numPlayers):
+#     playerX = player.Player(x+1)
+#     playerX.startingPos = 0
+#     players.append(playerX)
 
 
 
@@ -71,9 +71,10 @@ def gameSetup(players):
    
 #runs the game
 def main(player):
-    sys.stdout.write("---------------------------" + '\n')
-    sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n')
-    sys.stdout.write("---------------------------" + '\n')
+
+    # sys.stdout.write("-----------------------------------------------" + '\n')
+    sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
+    # sys.stdout.write("-----------------------------------------------" + '\n')
 
     global curTime
     player.tile = player.startingPos
@@ -93,9 +94,11 @@ def main(player):
 
         #tile action phase
         if player.tile == 24: #on go to jail 
+            block.acquire()
             player.tile = 8 #reset player position to jail
             player.path.append(8)
             player.timesJailed += 1 #for player stats
+            block.release()
 
         elif player.tile == 0 or player.tile == 16 or player.tile == 8: # if the player is on GO or Jail do nothing
             t = player.tile
@@ -125,7 +128,8 @@ def main(player):
 
 
 
-#prints out stats from the game
+#prints out stats from the game <- possible logging class? 
+#maybe straight to google drive? messy but dope
 #TODO save to CSV at some point
 def stats(players): 
     print("---------------------------")
@@ -144,13 +148,19 @@ def stats(players):
         print("Path:", player.path)
         print("Properties:", player.properties)
         print("------------------")
-    print(b.tiles)
-
-
+    b.print()
 
 
 gameSetup(players) #setup players
 
+def lezgo():
+    for i in range(20):
+        print("-----------------------------------------------")
+        if i == 6: print("------< STARTING >-----------------------------")
+        if i == 9: print("----------------< MONOPOLY >-------------------")
+        if i == 12: print("--------------------------< SPEED >------------")
+
+lezgo()
 #start game timer
 curTime = time.time() 
 endTime = curTime + gameLength
@@ -160,10 +170,8 @@ threads = list()
 for player in players: #creates a thread for each player
     playerThread = threading.Thread(target=main, args=(player,))
     threads.append(playerThread) #adds to list
-
 for playerThread in threads: #starts each thread
     playerThread.start() #starts each player
-
 for index, thread in enumerate(threads): #waits for each thread to end before moving forward
     thread.join() #shouldn't be necessary but here just in case
 

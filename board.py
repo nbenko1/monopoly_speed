@@ -1,3 +1,4 @@
+import sys
 
 class Board:
     def __init__(self):
@@ -27,9 +28,6 @@ class Board:
         "go to jail"   : [[24, 0, 0]],
         }
 
-        #self.exclude = [0, 8, 16, 24] # not sure about this one
-
-    # isolates the tile that was landed on
 
     #this method returns the tile from its ID
     def getTile(self, id):
@@ -48,4 +46,11 @@ class Board:
         else: return 1 #returns 1 already owned
 
             
+    def print(self):
+        sys.stdout.write("-------BOARD------" + "\n")
+        sys.stdout.write("------------------" + "\n")
+        sys.stdout.write('[place on board][owner]["N"]["N"]' + "\n")
+        for key, value in self.tiles.items(): #loops through dictionary
+            for place in value: # loops through the values
+                sys.stdout.write(str(place) + "\n")
 
