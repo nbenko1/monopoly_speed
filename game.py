@@ -3,32 +3,38 @@
 # it then creates threads for each player and runs the game on the shared board
 # the individual player classes handle how long each action takes  --- (so far I only have the one)
 # but there is an global timer that controls how long the game lasts
-# each player gets its own thread so they all run at their own speed, this is cool but causes a MESS of the print statements 
-#       so for testing should probably look at one agent at a time
+
+
+# key for todos:
+# '-' started
+# '--' finished but needs testing
+# '---' being tested
+# '+' complete
+
 
 #TODO -- Add mutex lock around global board object
-#TODO - chance card class
-#TODO - community chest card class
-#TODO Add method in the player class that adds up all money at the end of the game - need cards first
+#TODO -- chance card class
+#TODO -- community chest card class
+#TODO -- Add method in the player class that adds up all money at the end of the game - need cards first
 #TODO Print data to CSV at end of the game
 #TODO stats for each round - total at end
-#TODO with and without chance cards
-#TODO print board in a readable format
+#TODO - with and without chance cards
+#TODO - print board in a readable format
 
 #TODO python logging class ?? i dont know what this is but it sounds promising
 
 
 
 
+
+
+
 #this is where the magic happens, run this file to run the simulation
-
-
-
-
 
 #custom classes
 import player
 import board
+import cards
 
 #Python libraries
 import random
@@ -37,16 +43,20 @@ import threading
 import sys #for atomic print commands
 
 block = threading.Lock()
+c_lock = threading.Lock()
 
-#initialize board
+#initialize game elements
+
+#board
 b = board.Board()
 rounds = 10 #for testing
 players = []
-gameLength = 30.0
+gameLength = 150.0
+#cards
+chanceDeck = cards.ChanceDeck()
+commDeck = cards.CommChestDeck()
 
-
-#this is gross but lets you specify different starting positions
-#initialize players
+#players
 player1 = player.Player("JIMMY")
 player2 = player.Player("THERESA")
 player1.startingPos = 0
@@ -67,7 +77,7 @@ players.append(player2)
 def gameSetup(players):
     #initialize player(s)
     for player in players:
-        player.money += 5000 # starts with 5000
+        player.money += 50000 # starts with 5000
         for cards in range(4):
             player.chance.append("random chance card") # four chance cards
             if cards < 3:
@@ -77,6 +87,11 @@ def gameSetup(players):
    
 #runs the game
 def main(player):
+
+    c_lock.acquire() #mutex for the cards decks
+    player.chance = chanceDeck.pullChanceCards()
+    player.commChest = commDeck.pullChestCards()
+    c_lock.release()
 
     # sys.stdout.write("-----------------------------------------------" + '\n')
     sys.stdout.write("STARTING GAME FOR " + str(player.id)  + '\n' + '\n')
@@ -129,9 +144,13 @@ def main(player):
         loop += 1
         curTime = time.time()
 
-
-
-
+    #after the game ends
+    sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
+    sys.stdout.write(str(player.id) + "pre money: " + str(player.money))
+    commDeck.payout(player) # does this need a mutex
+    sys.stdout.write(str(player.id)+ " cards: " + str(player.commChest) + "\n")
+    sys.stdout.write(str(player.id) + " post money: " + str(player.money))
+    sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
 
 
 #prints out stats from the game <- possible logging class? 

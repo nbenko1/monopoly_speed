@@ -3,18 +3,18 @@ import random
 import player
 
 # used by both classes
-# chooses a random card depending on frequency
+# chooses a random card from a deck depending on frequency
 def pullCards(deck, num):
     cards = []
-    for _ in range(num):  
+    for _ in range(num):  #loops once for each card drawn
         weights = []
         for key, value in deck.items():
             weights.append(value[1])
-        card = random.choices(deck, weights = weights, k = 1) #this doesn't take into account when cards run out
+        card = random.choices(deck, weights = weights, k = 1)
 
         cards.append(card[0])
         id = card[0][0]
-        for key, value in deck.items():
+        for key, value in deck.items(): #adjust weights
             if id == value[0]:
                 value[1] -= 1
     return cards
@@ -52,7 +52,6 @@ dblue = [29,31]
 railroads = [4,12,20,28]
 utilities = [2,30]
 
-
 class CommChestDeck:
 
     def __init__(self):
@@ -73,51 +72,42 @@ class CommChestDeck:
         }
 
     def pullChestCards(self):
-        return pullCards(self.CommChestCards, 4)
+        return pullCards(self.CommChestCards, 5)
 
 
     #calculate payout based on cards 
     #this ones tough, have to check property cards against requirements for each community chest card
-
     #THIS IS A HOT MESS but i think it works
 
     def payout(self, player):
         for card in player.commChest:
-            print(card)
+            #print(card)
             if card[2] == "group":
-                print("CARD", card[2])
+                #print("CARD", card[2])
                 found = False
                 fullSet = True
                 for i in range(5,len(card)):
-                    print("i = " , i)
                     tempSet = False
                     for prop in card[i]:
-                        print("out",prop)
                         for x in player.properties:
-                            print("owned",x)
                             if x == prop:
                                 found = True
-                                print("found")
                                 break
                         if found: tempSet = True
-                        print("met",tempSet)
-                        print("was it found?", found)
                         found = False
                     if not tempSet: fullSet = False
                 if fullSet: player.money += card[3]
-                print("money:",player.money)
 
             if card[2] == "set":
-                print("CARD", card[2])
+                #print("CARD", card[2])
                 propSet = card[5]
                 fullSet = True
                 for prop in propSet:
                     if prop not in player.properties: fullSet = False
                 if fullSet: player.money += card[3] 
-                print("money", player.money)
                     
             if card[2] == "anySet":
-                print("CARD", card[2])
+                #print("CARD", card[2])
                 for i in range(5, len(card)):
                     fullSet = True
                     for prop in card[i]:
@@ -129,8 +119,9 @@ class CommChestDeck:
                 propSet = card[5]
                 for prop in propSet:
                     if prop in player.properties: player.money += 1000
-                print("money", player.money)
 
+
+#testing
 chestDeck = CommChestDeck()
 player = player.Player(1)
 player.commChest = chestDeck.pullChestCards()

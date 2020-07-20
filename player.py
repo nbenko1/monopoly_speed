@@ -43,7 +43,7 @@ class Player:
     #moves player, adds money if passed go
     def move(self, role):
 
-        time.sleep(random.randint(3, 5))
+        time.sleep(random.randint(0, 1))
 
         self.roles.append(role) # adds role to record
         num = role
@@ -61,7 +61,7 @@ class Player:
     #when the player lands on a property this method handles whether or not to buy it
     def canPurchase(self, b):
 
-        time.sleep(random.randint(4, 6)) # random between 4 - 6
+        time.sleep(random.randint(1, 2)) # random between 4 - 6
 
         tile = b.getTile(self.tile)
         tile[1] = self.id
