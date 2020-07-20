@@ -39,45 +39,57 @@ class ChanceDeck:
 # for card in player.chance:
 #     print(card[0], card[1])
 
+#theses are used for the card set testing
+brown = [1,3]
+lblue = [5,6,7]
+pink = [9,10,11]
+orange = [13,14,15]
+red = [17, 18,19]
+yellow = [21,22,23]
+green = [25,26,27]
+dblue = [29,31]
+
+railroads = [4,12,20,28]
+utilities = [2,30]
 
 
 class CommChestDeck:
 
     def __init__(self):
 
-        brown = [1,3]
-        lblue = [5,6,7]
-        pink = [9,10,11]
-        orange = [13,14,15]
-        red = [17, 18,19]
-        yellow = [21,22,23]
-        green = [25,26,27]
-        dblue = [29,31]
-
-        railroads = [4,12,20,28]
-        utilities = [2,30]
-
         self.CommChestCards = {
             #[id, freq, type, reward, number of reqs, reqs]
-            0: [1, 10, "group", 2000, 3, brown, lblue, pink]
+            0: [1, 1, "group", 2000, 3, brown, lblue, dblue],
+            1: [2, 1, "group", 2000, 2, yellow, dblue],
+            2: [3, 1, "group", 2000, 3, pink, orange, green],
+            3: [4, 1, "set", 4000, 1, red],
+            4: [5, 1, "set", 4000, 1, green],
+            5: [6, 1, "set", 4000, 1, yellow],
+            6: [7, 1, "set", 3000, 1, pink],
+            7: [8, 1, "set", 3000, 1, orange],
+            8: [9, 1, "set", 2000, 1, utilities],
+            9: [10, 2, "anySet", 1000, 10, brown, lblue, pink, orange, red, yellow, green, dblue, railroads, utilities],   
+            10: [11, 1, "rail", 1000, 4, railroads]
         }
 
     def pullChestCards(self):
-        return pullCards(self.CommChestCards, 1)
+        return pullCards(self.CommChestCards, 4)
 
 
     #calculate payout based on cards 
     #this ones tough, have to check property cards against requirements for each community chest card
 
-    #THIS IS A MESS but i think it works
+    #THIS IS A HOT MESS but i think it works
 
     def payout(self, player):
         for card in player.commChest:
             print(card)
             if card[2] == "group":
+                print("CARD", card[2])
                 found = False
                 fullSet = True
-                for i in range(5,5+card[4]):
+                for i in range(5,len(card)):
+                    print("i = " , i)
                     tempSet = False
                     for prop in card[i]:
                         print("out",prop)
@@ -93,25 +105,41 @@ class CommChestDeck:
                         found = False
                     if not tempSet: fullSet = False
                 if fullSet: player.money += card[3]
-
                 print("money:",player.money)
 
-
-
             if card[2] == "set":
-                pass
-            if card[2] == "utility":
-                pass
-            if card[2] == "railroad":
-                pass
+                print("CARD", card[2])
+                propSet = card[5]
+                fullSet = True
+                for prop in propSet:
+                    if prop not in player.properties: fullSet = False
+                if fullSet: player.money += card[3] 
+                print("money", player.money)
+                    
+            if card[2] == "anySet":
+                print("CARD", card[2])
+                for i in range(5, len(card)):
+                    fullSet = True
+                    for prop in card[i]:
+                        if prop not in player.properties: fullSet = False
+                    if fullSet: player.money += card[3] 
+
+            if card[2] == "rail":
+                print("CARD", card[2])
+                propSet = card[5]
+                for prop in propSet:
+                    if prop in player.properties: player.money += 1000
+                print("money", player.money)
 
 chestDeck = CommChestDeck()
 player = player.Player(1)
 player.commChest = chestDeck.pullChestCards()
-player.properties.append(4)
-player.properties.append(5)
-player.properties.append(10)
 player.properties.append(1)
+player.properties.append(28)
+player.properties.append(4)
+player.properties.append(12)
+player.properties.append(20)
+player.properties.append(3)
 chestDeck.payout(player)
 
 
