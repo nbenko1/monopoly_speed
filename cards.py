@@ -31,6 +31,7 @@ class ChanceDeck:
         }
 
     def pullChanceCards(self):
+        # print("distributing chance cards")
         return pullCards(self.chanceCards, 4)
 
 # player = player.Player(1)
@@ -72,7 +73,8 @@ class CommChestDeck:
         }
 
     def pullChestCards(self):
-        return pullCards(self.CommChestCards, 5)
+        # print("distributing chest cards")
+        return pullCards(self.CommChestCards, 3)
 
 
     #calculate payout based on cards 
@@ -115,7 +117,7 @@ class CommChestDeck:
                     if fullSet: player.money += card[3] 
 
             if card[2] == "rail":
-                print("CARD", card[2])
+                # print("CARD", card[2])
                 propSet = card[5]
                 for prop in propSet:
                     if prop in player.properties: player.money += 1000

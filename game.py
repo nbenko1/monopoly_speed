@@ -25,10 +25,6 @@
 
 
 
-
-
-
-
 #this is where the magic happens, run this file to run the simulation
 
 #custom classes
@@ -41,9 +37,11 @@ import random
 import time
 import threading
 import sys #for atomic print commands
+import csv
+import pandas
 
-block = threading.Lock()
-c_lock = threading.Lock()
+block = threading.Lock() # mutex for the board
+c_lock = threading.Lock() # mutex for the card decks
 
 #initialize game elements
 
@@ -51,7 +49,7 @@ c_lock = threading.Lock()
 b = board.Board()
 rounds = 10 #for testing
 players = []
-gameLength = 150.0
+gameLength = 30.0
 #cards
 chanceDeck = cards.ChanceDeck()
 commDeck = cards.CommChestDeck()
@@ -72,17 +70,14 @@ players.append(player2)
 #     players.append(playerX)
 
 
-
-
 def gameSetup(players):
     #initialize player(s)
     for player in players:
-        player.money += 50000 # starts with 5000
+        player.money += 5000 # starts with 5000
         for cards in range(4):
             player.chance.append("random chance card") # four chance cards
             if cards < 3:
                 player.chance.append("random community chest card") # three community chest cards
-
 
    
 #runs the game
@@ -145,12 +140,12 @@ def main(player):
         curTime = time.time()
 
     #after the game ends
-    sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
-    sys.stdout.write(str(player.id) + "pre money: " + str(player.money))
+    # sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
+    # sys.stdout.write(str(player.id) + "pre money: " + str(player.money))
     commDeck.payout(player) # does this need a mutex
-    sys.stdout.write(str(player.id)+ " cards: " + str(player.commChest) + "\n")
-    sys.stdout.write(str(player.id) + " post money: " + str(player.money))
-    sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
+    # sys.stdout.write(str(player.id)+ " cards: " + str(player.commChest) + "\n")
+    # sys.stdout.write(str(player.id) + " post money: " + str(player.money))
+    # sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
 
 
 #prints out stats from the game <- possible logging class? 
@@ -175,6 +170,16 @@ def stats(players):
         print("------------------")
     b.print()
 
+
+def printCSV():
+    print("printing to CSV", '\n')
+    with open ('output.csv', mode='w') as output:
+        output = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        output.writerow(['P_ID','Money','S_Pos','GO','Jail','Props'])
+        for player in players:
+            output.writerow([player.id, player.money,player.startingPos, player.timesPassedGo, player.timesJailed, player.properties])
+    df = pandas.read_csv('output.csv', index_col='P_ID')
+    print(df)
 
 gameSetup(players) #setup players
 
@@ -201,6 +206,13 @@ for index, thread in enumerate(threads): #waits for each thread to end before mo
     thread.join() #shouldn't be necessary but here just in case
 
 stats(players)
+printCSV()
 
 
-#save to CSV
+
+
+
+
+
+
+
