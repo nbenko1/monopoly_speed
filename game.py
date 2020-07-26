@@ -13,13 +13,15 @@
 
 
 #TODO -- Add mutex lock around global board object
-#TODO -- chance card class
-#TODO -- community chest card class
-#TODO -- Add method in the player class that adds up all money at the end of the game - need cards first
-#TODO Print data to CSV at end of the game
-#TODO stats for each round - total at end
+#TODO --- chance card class
+#TODO --- community chest card class
+#TODO --- Add method in the player class that adds up all money at the end of the game - need cards first
+#TODO -- Print data to CSV at end of the game
+            # need to save different files instead of writing over the same one
+#TODO ---stats for each round - total at end
 #TODO - with and without chance cards
-#TODO - print board in a readable format
+#TODO print board in a readable format
+
 
 #TODO python logging class ?? i dont know what this is but it sounds promising
 
@@ -49,7 +51,7 @@ c_lock = threading.Lock() # mutex for the card decks
 b = board.Board()
 rounds = 10 #for testing
 players = []
-gameLength = 30.0
+gameLength = 60.0
 #cards
 chanceDeck = cards.ChanceDeck()
 commDeck = cards.CommChestDeck()
@@ -142,7 +144,9 @@ def main(player):
     #after the game ends
     # sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
     # sys.stdout.write(str(player.id) + "pre money: " + str(player.money))
-    commDeck.payout(player) # does this need a mutex
+    # c_lock.acquire()
+    # commDeck.payout(player) # does this need a mutex
+    # c_lock.release()
     # sys.stdout.write(str(player.id)+ " cards: " + str(player.commChest) + "\n")
     # sys.stdout.write(str(player.id) + " post money: " + str(player.money))
     # sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
@@ -150,7 +154,7 @@ def main(player):
 
 #prints out stats from the game <- possible logging class? 
 #maybe straight to google drive? messy but dope
-#TODO save to CSV at some point
+
 def stats(players): 
     print("---------------------------")
     print("           STATS")
@@ -170,7 +174,9 @@ def stats(players):
         print("------------------")
     b.print()
 
-
+#prints the output to a csv file
+#then reads it back in and prints it all pretty like - just make sure to give it enough room 
+#in the terminal window
 def printCSV():
     print("printing to CSV", '\n')
     with open ('output.csv', mode='w') as output:
@@ -189,8 +195,9 @@ def lezgo():
         if i == 6: print("------< STARTING >-----------------------------")
         if i == 9: print("----------------< MONOPOLY >-------------------")
         if i == 12: print("--------------------------< SPEED >------------")
-
 lezgo()
+
+
 #start game timer
 curTime = time.time() 
 endTime = curTime + gameLength
@@ -204,6 +211,12 @@ for playerThread in threads: #starts each thread
     playerThread.start() #starts each player
 for index, thread in enumerate(threads): #waits for each thread to end before moving forward
     thread.join() #shouldn't be necessary but here just in case
+
+
+print(" ------------------\n       PAYOUT       \n ------------------")
+for player in players:
+    print("\n --payout for community chest", player.id, "--")
+    commDeck.payout(player)
 
 stats(players)
 printCSV()
