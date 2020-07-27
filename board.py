@@ -6,26 +6,26 @@ class Board:
 
         #          0                  1                2          3
         # [ Place on board | Owner? (ID of player) | frequency | placeholder ]
-        "brown"     : [[ 1, 0, 0, 0], [ 3, 0, 0, 0]],
-        "lblue"     : [[ 5, 0, 0, 0], [ 6, 0, 0, 0], [ 7, 0, 0, 0]],
-        "pink"      : [[ 9, 0, 0, 0], [10, 0, 0, 0], [11, 0, 0, 0]],
-        "orange"    : [[13, 0, 0, 0], [14, 0, 0, 0], [15, 0, 0, 0]],
-        "red"       : [[17, 0, 0, 0], [18, 0, 0, 0], [19, 0, 0, 0]],
-        "yellow"    : [[21, 0, 0, 0], [22, 0, 0, 0], [23, 0, 0, 0]],
-        "green"     : [[25, 0, 0, 0], [26, 0, 0, 0], [27, 0, 0, 0]],
-        "dblue"     : [[29, 0, 0, 0], [31, 0, 0, 0]],
+        "brown"     : [[ 1, 0, "Mediterranean Ave", 0], [ 3, 0, "Baltic Ave", 0]],
+        "lblue"     : [[ 5, 0, "Oriental Ave", 0], [ 6, 0, "Vermont Ave", 0], [ 7, 0, "Connecticut Ave", 0]],
+        "pink"      : [[ 9, 0, "St. Charles Place", 0], [10, 0, "States Ave", 0], [11, 0, "Virginia Ave", 0]],
+        "orange"    : [[13, 0, "St. James Place", 0], [14, 0, "Tennessee Ave", 0], [15, 0, "New York Ave", 0]],
+        "red"       : [[17, 0, "Kentucky Ave", 0], [18, 0, "Indiana Ave", 0], [19, 0, "Illinois Ave", 0]],
+        "yellow"    : [[21, 0, "Atlantic Ave", 0], [22, 0, "Ventnor Ave", 0], [23, 0, "Marvins Gardens", 0]],
+        "green"     : [[25, 0, "Pacific Ave", 0], [26, 0, "North Carolina Ave", 0], [27, 0, "Pennsylvania Ave", 0]],
+        "dblue"     : [[29, 0, "Park Place", 0], [31, 0, "Boardwalk", 0]],
    
-        "railroad"  : [[ 4, 0, 0, 0], [12, 0, 0, 0], [20, 0, 0, 0], [28, 0, 0, 0]],
-        "utilities" : [[ 2, 0, 0, 0], [30, 0, 0, 0]],
+        "railroad"  : [[ 4, 0, "Reading Rail", 0], [12, 0, "Pennsylvania Rail", 0], [20, 0, "B. & O. Rail", 0], [28, 0, "Short Lane", 0]],
+        "utilities" : [[ 2, 0, "Water Works", 0], [30, 0, "Electric Company", 0]],
    
         #          0               1              2
         # [ Place on board | placeholder | placeholder ]
-        "GO1"          : [[0, 0, 0]],
-        "GO2"          : [[16, 0, 0]],
+        "GO1"          : [[0, "GO 1", 0]],
+        "GO2"          : [[16, "GO 2", 0]],
         
    
-        "jail"         : [[8, 0, 0]],
-        "go to jail"   : [[24, 0, 0]],
+        "jail"         : [[8, "Jail", 0]],
+        "go to jail"   : [[24, "Go To Jail", 0]],
         }
 
         self.exclude = [0,16,8,24]
@@ -52,8 +52,18 @@ class Board:
         sys.stdout.write("-------BOARD------" + "\n")
         sys.stdout.write("------------------" + "\n")
         sys.stdout.write('[place on board][owner]["N"]["N"]' + "\n")
-        for key, value in self.tiles.items(): #loops through dictionary
-            for place in value: # loops through the values
-                if place[0] not in self.exclude:
-                    sys.stdout.write(str(place) + "\n")
 
+        # for key, value in self.tiles.items(): #loops through 
+        #     for place in value: # loops through the values
+        #         if place[0] not in self.exclude and place[0]:
+        #             for Id in range(1,31):
+        #                 print(Id)
+        #                 if Id == place[0]:
+        #                     sys.stdout.write(str(place) + "\n")
+        #                     break
+        for i in range(1,32):
+            if i not in self.exclude:
+                print("ID:",self.getTile(i)[0],"Owner:",self.getTile(i)[1])
+
+# b = Board()
+# b.print()

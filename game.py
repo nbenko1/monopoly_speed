@@ -12,7 +12,7 @@
 # '+' complete
 
 
-#TODO -- Add mutex lock around global board object
+#TODO --- Add mutex lock around global board object
 #TODO --- chance card class
 #TODO --- community chest card class
 #TODO --- Add method in the player class that adds up all money at the end of the game - need cards first
@@ -20,7 +20,7 @@
             # need to save different files instead of writing over the same one
 #TODO ---stats for each round - total at end
 #TODO - with and without chance cards
-#TODO print board in a readable format
+#TODO - print board in a readable format
 
 
 #TODO python logging class ?? i dont know what this is but it sounds promising
@@ -47,52 +47,86 @@ c_lock = threading.Lock() # mutex for the card decks
 
 #initialize game elements
 
-#board
+#CONTROL BOARD
 b = board.Board()
 rounds = 10 #for testing
 players = []
-gameLength = 60.0
+gameLength = 30.0
 #cards
 chanceDeck = cards.ChanceDeck()
 commDeck = cards.CommChestDeck()
+
+curTime = time.time() 
+endTime = curTime + gameLength
 
 #players
 player1 = player.Player("JIMMY")
 player2 = player.Player("THERESA")
 player1.startingPos = 0
-player2.startingPos = 16
+player2.startingPos = 0
 players.append(player1)
 players.append(player2)
 
-# #automates
-# numPlayers = 2
-# for x in range(numPlayers):
-#     playerX = player.Player(x+1)
-#     playerX.startingPos = 0
-#     players.append(playerX)
+def runGame(numPlayers, startingPos, length, rounds):
+    for r in range(rounds):
+        global b
+        b = board.Board()
+        players = []
 
+        global block 
+        block = threading.Lock() # mutex for the board
+        global c_lock
+        c_lock = threading.Lock() # mutex for the card decks
+
+        for i in range(1,numPlayers+1):
+            tempPlayer = player.Player(i)
+            tempPlayer.startingPos = startingPos
+            players.append(tempPlayer)
+
+        global curTime 
+        curTime = time.time() 
+        global endTime 
+        endTime = curTime + length
+
+        gameSetup(players)
+        lezgo()
+        start(players)
+        payout(players)
+        printStats(players)
+        printCSV()
+
+
+#sets up players using terminal input
+def manualSetup():
+    numPlayers = int(input("how many players: ")) #freaks out if you dont pass a1n int
+    for count in range(1,numPlayers+1):
+        print(numPlayers)
+        sys.stdout.write("what would you like player " + str(count))
+        playerID = input(" to be called? ")
+        player_t = player.Player(playerID)
+        startPos = -1
+        while(startPos != "1" and startPos != "2"):
+            startPos = input("type '1' or '2' to choose your starting position: ")
+            int(startPos)
+            print(type(startPos))
+            if startPos != "1" and startPos != "2":
+                print("please type either 'first' or 'second'")
+        if startPos == "1": player.startingPos = 0
+        elif startPos == "2": player.startingPos = 16
+        else: print("something went wrong with your starting position please start over")
+        players.append(player_t)
 
 def gameSetup(players):
     #initialize player(s)
     for player in players:
         player.money += 5000 # starts with 5000
-        for cards in range(4):
-            player.chance.append("random chance card") # four chance cards
-            if cards < 3:
-                player.chance.append("random community chest card") # three community chest cards
-
+        player.chance = chanceDeck.pullChanceCards()
+        player.commChest = commDeck.pullChestCards()
    
 #runs the game
 def main(player):
 
-    c_lock.acquire() #mutex for the cards decks
-    player.chance = chanceDeck.pullChanceCards()
-    player.commChest = commDeck.pullChestCards()
-    c_lock.release()
-
-    # sys.stdout.write("-----------------------------------------------" + '\n')
     sys.stdout.write("STARTING GAME FOR " + str(player.id)  + '\n' + '\n')
-    # sys.stdout.write("-----------------------------------------------" + '\n')
 
     global curTime
     player.tile = player.startingPos
@@ -141,24 +175,14 @@ def main(player):
         loop += 1
         curTime = time.time()
 
-    #after the game ends
-    # sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
-    # sys.stdout.write(str(player.id) + "pre money: " + str(player.money))
-    # c_lock.acquire()
-    # commDeck.payout(player) # does this need a mutex
-    # c_lock.release()
-    # sys.stdout.write(str(player.id)+ " cards: " + str(player.commChest) + "\n")
-    # sys.stdout.write(str(player.id) + " post money: " + str(player.money))
-    # sys.stdout.write("\n"+ "decks testing - pre payout" +"\n")
-
 
 #prints out stats from the game <- possible logging class? 
 #maybe straight to google drive? messy but dope
 
-def stats(players): 
-    print("---------------------------")
+def printStats(players): 
+    print("--------------------------")
     print("           STATS")
-    print("---------------------------")
+    print("--------------------------")
 
     for player in players:
 
@@ -178,7 +202,7 @@ def stats(players):
 #then reads it back in and prints it all pretty like - just make sure to give it enough room 
 #in the terminal window
 def printCSV():
-    print("printing to CSV", '\n')
+    print("\nprinting to CSV\n")
     with open ('output.csv', mode='w') as output:
         output = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         output.writerow(['P_ID','Money','S_Pos','GO','Jail','Props'])
@@ -187,7 +211,7 @@ def printCSV():
     df = pandas.read_csv('output.csv', index_col='P_ID')
     print(df)
 
-gameSetup(players) #setup players
+
 
 def lezgo():
     for i in range(20):
@@ -195,34 +219,46 @@ def lezgo():
         if i == 6: print("------< STARTING >-----------------------------")
         if i == 9: print("----------------< MONOPOLY >-------------------")
         if i == 12: print("--------------------------< SPEED >------------")
-lezgo()
+
 
 
 #start game timer
-curTime = time.time() 
-endTime = curTime + gameLength
 
 #multithreading - one for each player running at main()
-threads = list()
-for player in players: #creates a thread for each player
-    playerThread = threading.Thread(target=main, args=(player,))
-    threads.append(playerThread) #adds to list
-for playerThread in threads: #starts each thread
-    playerThread.start() #starts each player
-for index, thread in enumerate(threads): #waits for each thread to end before moving forward
-    thread.join() #shouldn't be necessary but here just in case
+def start(players):
+    threads = list()
+    for player in players: #creates a thread for each player
+        playerThread = threading.Thread(target=main, args=(player,))
+        threads.append(playerThread) #adds to list
+    for playerThread in threads: #starts each thread
+        playerThread.start() #starts each player
+    for index, thread in enumerate(threads): #waits for each thread to end before moving forward
+        thread.join() #shouldn't be necessary but here just in case
 
 
-print(" ------------------\n       PAYOUT       \n ------------------")
-for player in players:
-    print("\n --payout for community chest", player.id, "--")
-    commDeck.payout(player)
-
-stats(players)
-printCSV()
+def payout(players):
+    print("--------------------------\n           PAYOUT       \n--------------------------")
+    for player in players:
+        print("\n --payout for community chest", player.id, "--")
+        commDeck.payout(player)
 
 
 
+# curTime = time.time() 
+# endTime = curTime + gameLength
+
+#GAME METHODS
+# manualSetup() # set up players through terminal input
+# gameSetup(players)
+# lezgo() #important
+# start(players)
+# payout(players)
+# printStats(players)
+# printCSV()
+
+
+
+runGame(2, 0, 10.0, 2)
 
 
 
