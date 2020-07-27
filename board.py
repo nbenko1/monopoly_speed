@@ -53,17 +53,10 @@ class Board:
         sys.stdout.write("------------------" + "\n")
         sys.stdout.write('[place on board][owner]["N"]["N"]' + "\n")
 
-        # for key, value in self.tiles.items(): #loops through 
-        #     for place in value: # loops through the values
-        #         if place[0] not in self.exclude and place[0]:
-        #             for Id in range(1,31):
-        #                 print(Id)
-        #                 if Id == place[0]:
-        #                     sys.stdout.write(str(place) + "\n")
-        #                     break
         for i in range(1,32):
             if i not in self.exclude:
-                print("ID:",self.getTile(i)[0],"Owner:",self.getTile(i)[1])
+                # print("ID: ",self.getTile(i)[0],"Owner:",self.getTile(i)[1])
+                print(self.getTile(i))
 
 # b = Board()
 # b.print()

@@ -80,9 +80,9 @@ class CommChestDeck:
     #calculate payout based on cards 
     #THIS IS A HOT MESS but i think it works
 
-    def payout(self, player):
+    def payout(self, player, report):
         for card in player.commChest:
-            print("CARD:",card, '\n')
+            if report: print("---CARD---:",card)
             if card[2] == "partGroup": # at least one card in group
                 meetsReq = False
                 for i in range(5, len(card)):
@@ -91,7 +91,8 @@ class CommChestDeck:
             
                 if meetsReq: 
                     player.money += 2000
-                    print("money + 2000 for partGroup")
+                    player.mChest += 2000
+                    if report: print("money + 2000 for partGroup")
 
             if card[2] == "group": # one in each
                 #print("CARD", card[2])
@@ -109,7 +110,8 @@ class CommChestDeck:
                     if not tempSet: fullSet = False
                 if fullSet: 
                     player.money += card[3]
-                    print("money +", card[3], "for group")
+                    player.mChest += card[3]
+                    if report: print("money +", card[3], "for group")
 
             if card[2] == "set": #full set
                 #print("CARD", card[2])
@@ -120,7 +122,8 @@ class CommChestDeck:
                         if prop not in player.properties: fullSet = False
                     if fullSet: 
                         player.money += card[3] 
-                        print("money +", card[3], "for set")
+                        player.mChest += card[3]
+                        if report: print("money +", card[3], "for set")
                     
             if card[2] == "anySet":
                 #print("CARD", card[2])
@@ -130,7 +133,8 @@ class CommChestDeck:
                         if prop not in player.properties: fullSet = False
                     if fullSet: 
                         player.money += card[3] 
-                        print("money +", card[3], "for anySet")
+                        player.mChest += card[3]
+                        if report: print("money +", card[3], "for anySet")
 
             if card[2] == "rail":
                 # print("CARD", card[2])
@@ -138,7 +142,8 @@ class CommChestDeck:
                 for prop in propSet:
                     if prop in player.properties: 
                         player.money += 1000
-                        print("money + 1000 for rail")
+                        player.mChest += 1000
+                        if report: print("money + 1000 for rail")
                     
 
 
