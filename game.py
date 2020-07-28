@@ -17,7 +17,6 @@ import sys #for atomic print commands
 import csv
 import pandas
 
-
 # key for todos:
 # '-' started
 # '--' finished but needs testing
@@ -43,7 +42,7 @@ c_lock = threading.Lock() # mutex for the card decks
 
 #initialize game elements
 
-#CONTROL BOARD BABY - obselete
+#CONTROL BOARD BABY - obsolete
 b = board.Board()
 rounds = 10 #for testing
 players = []
@@ -65,6 +64,7 @@ player2.startingPos = 0
 players.append(player1)
 players.append(player2)
 
+#sets up and runs a game instance
 def run(numPlayers, startingPos, length, rounds, post):
     global report
     report = post
@@ -263,7 +263,7 @@ def payout():
     
         if player.money >= winningAmount:
             winningPlayer = player
-            winningAmount = player.money
+            winningAmount = winningPlayer.money
         
     winningPlayer.winner = True
 
