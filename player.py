@@ -22,7 +22,8 @@ pSet = [brown,lblue,pink,orange,red,yellow,green,dblue,railroads,utilities]
 class Player:
     def __init__(self, player_id):
 
-        #
+        
+        self.type = "greedy"
         self.id = player_id
         self.tile = 0 #current location
         self.winner = False
@@ -40,6 +41,7 @@ class Player:
         self.startingPos = 0 # starting position - can be changed
         self.path = []
         self.numRoles = 0
+        self.spaceCovered = 0
 
         #money breakdown
         self.mGo = 0 #money from passing GO
@@ -57,27 +59,27 @@ class Player:
             if report: sys.stdout.write("player " + str(self.id) + " passed GO and received 1000 dollars" + "\n")
 
     #moves player, adds money if passed go
-    def move(self, role, report):
+    def move(self,report):
+        role = random.randint(1,6) 
+        time.sleep(random.randint(3, 6))
 
-        time.sleep(random.randint(0, 1))
-
-        self.roles.append(role) # adds role to record
-        num = role
-        old_tile = self.tile
-        self.tile += num
-
-        self.passGO(old_tile, self.tile, report) # if passes either go adds $1000
+        self.roles.append(role) # adds role to records
+        
+        self.passGO(self.tile, self.tile+role, report) # if passes either go adds $1000
+        self.tile += role
 
         if self.tile >= 32:
             self.tile = self.tile % 32 # wraps position around board
 
         self.path.append(self.tile) # keeps track of where the player went
+        self.numRoles += 1
+        self.spaceCovered += role
     
 
     #when the player lands on a property this method handles whether or not to buy it
     def canPurchase(self, b):
 
-        time.sleep(random.randint(1, 2)) # random between 4 - 6
+        time.sleep(random.randint(2, 4)) # random between 4 - 6
 
         tile = b.getTile(self.tile)
         tile[1] = self.id

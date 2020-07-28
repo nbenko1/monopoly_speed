@@ -49,9 +49,10 @@ class Board:
 
             
     def print(self):
+        sys.stdout.write("------------------" + "\n")
         sys.stdout.write("-------BOARD------" + "\n")
         sys.stdout.write("------------------" + "\n")
-        sys.stdout.write('[place on board][owner]["N"]["N"]' + "\n")
+        sys.stdout.write('[place on board][owner]["Title"]["N"]' + "\n")
 
         for i in range(1,32):
             if i not in self.exclude:
