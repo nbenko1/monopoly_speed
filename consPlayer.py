@@ -3,6 +3,7 @@
 
 import player
 import time
+import sys
 
 class ConsPlayer(player.Player):
 
@@ -10,6 +11,6 @@ class ConsPlayer(player.Player):
         super().__init__(player_id)
         self.type = "conservative"
 
-    def canPurchase(self, b):
-        time.sleep(2)
+    def canPurchase(self, b,report,block):
+        time.sleep(0.5) #-----------------------lag between roles
         pass #tell the

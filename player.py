@@ -61,7 +61,7 @@ class Player:
     #moves player, adds money if passed go
     def move(self,report):
         role = random.randint(1,6) 
-        time.sleep(random.randint(3, 6))
+        time.sleep(random.randint(2,3))#--------------------------time to moce
 
         self.roles.append(role) # adds role to records
         
@@ -77,15 +77,17 @@ class Player:
     
 
     #when the player lands on a property this method handles whether or not to buy it
-    def canPurchase(self, b):
-
-        time.sleep(random.randint(2, 4)) # random between 4 - 6
-
+    def canPurchase(self, b, report, block):
+        time.sleep(random.randint(3, 4)) #------------------------------------- random between 4 - 6
+        
+        block.acquire()
         tile = b.getTile(self.tile)
         tile[1] = self.id
+        block.release()
+
         self.money -= 1000
         self.properties.append(tile[0]) # saves property id to player
-
+        if report: sys.stdout.write("player " + str(self.id) + " bought " + str(self.tile)  + "\n") #TODO move to player
 
     # at the end of the game this method will look at the cards and calculate how much money was made
     def calculateMoney(self):
@@ -109,8 +111,6 @@ class Player:
                     self.money += 4000
                     self.mProp += 4000
             
-
-
 
 
 # p = Player(1)

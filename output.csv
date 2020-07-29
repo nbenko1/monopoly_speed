@@ -1,0 +1,5 @@
+ID,player_type,winner?,Total_Money,Money_from_GO,Money_from_Chest,Money_from_properties,Starting_Pos,num_moves,Passed_go,Jail,Properties,Chest_Cards
+1,greedy,False,13000,6000,2000,9000,0,34,6,3,"[6, 10, 21, 12, 14, 19, 9, 20, 22]","[8, 1, 10]"
+2,strategic,False,8000,3000,0,7000,0,29,3,0,"[2, 13, 21, 23, 25, 26, 18]","[9, 5, 11]"
+3,conservative,True,15000,10000,0,0,0,45,10,9,[],"[2, 10, 6]"
+""

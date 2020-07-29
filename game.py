@@ -9,6 +9,7 @@
 #custom classes
 import player
 import consPlayer
+import strategicPlayer
 
 import board
 import cards
@@ -73,71 +74,62 @@ endTime = curTime + gameLength
 # player2.startingPos = 0
 # players.append(player1)
 # players.append(player2)
+gameCount = 0
 
 #sets up and runs a game instance
-def run(numPlayers, startingPos, length, rounds, post, types):
+def run(numPlayers, startingPos, length, gameNumber, post, types):
+    #jesus christ theres got to be a better way than this
+    global chanceDeck
+    chanceDeck = cards.ChanceDeck()
+    global commDeck
+    commDeck = cards.CommChestDeck()
     global report
     report = post
-    
-    for r in range(rounds):
-        print("\nSTARTING GAME", r+1)
-        global b
-        b = board.Board()
-        global players
-        players = []
+    global gameCount
+    gameCount = gameNumber
+    global b
+    b = board.Board()
+    global players
+    players = []
+    global block 
+    block = threading.Lock() # mutex for the board
+    global c_lock
+    c_lock = threading.Lock() # mutex for the card decks
 
-        global block 
-        block = threading.Lock() # mutex for the board
-        global c_lock
-        c_lock = threading.Lock() # mutex for the card decks
+    for i in range(0,numPlayers):
+        tempPlayer = player.Player(i)
+        if types[i] == "c": #conservative player
+            tempPlayer = consPlayer.ConsPlayer(i+1)
+        elif types[i] == "g": #greedy player
+            tempPlayer = player.Player(i+1)
+        elif types[i] == "s": #strategic player
+            tempPlayer = strategicPlayer.StrategicPlayer(i+1)
+        tempPlayer.startingPos = startingPos[i]
+        players.append(tempPlayer)
 
-        for i in range(0,numPlayers):
-            tempPlayer = player.Player(i)
-            if types[i] == "c": #conservative player
-                tempPlayer = consPlayer.ConsPlayer(i+1)
-            if types[i] == "g": #greedy player
-                tempPlayer = player.Player(i+1)
-            tempPlayer.startingPos = startingPos[i]
-            players.append(tempPlayer)
+    print("\nSTARTING GAME", gameCount)
+    if not report:print("playing...")
 
-        global curTime 
-        curTime = time.time() 
-        global endTime 
-        endTime = curTime + length
+    global curTime 
+    curTime = time.time() 
+    global endTime 
+    endTime = curTime + length
 
-        #give players money and cards
-        gameSetup()
-        #prints greeting
-        if report:lezgo() 
-        #creates threads and plays game
-        start()
-        #gives rewards at the end of the game
-        payout()
-        #prints the stats of the game
-        if report: printStats()
-        #saves stats to CSV
-        stats = printCSV()
-        return stats
+    #give players money and cards
+    gameSetup()
+    #prints greeting
+    if report:lezgo() 
+    #creates threads and plays game
+    start()
+    #gives rewards at the end of the game
+    payout()
+    #prints the stats of the game
+    if report: printStats()
+    #saves stats to CSV
+    stats = printCSV()
+    return stats #return dataframe
 
-#sets up players using terminal input
-def manualSetup():
-    numPlayers = int(input("how many players: ")) #freaks out if you dont pass a1n int
-    for count in range(1,numPlayers+1):
-        print(numPlayers)
-        sys.stdout.write("what would you like player " + str(count))
-        playerID = input(" to be called? ")
-        player_t = player.Player(playerID)
-        startPos = -1
-        while(startPos != "1" and startPos != "2"):
-            startPos = input("type '1' or '2' to choose your starting position: ")
-            int(startPos)
-            print(type(startPos))
-            if startPos != "1" and startPos != "2":
-                print("please type either 'first' or 'second'")
-        if startPos == "1": player.startingPos = 0
-        elif startPos == "2": player.startingPos = 16
-        else: print("something went wrong with your starting position please start over")
-        players.append(player_t)
+
 
 def gameSetup():
     #initialize player(s)
@@ -161,37 +153,35 @@ def main(player):
 
         player.move(report)
 
-
-        if report: sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + "\n")
-
+        if report: 
+            if player.type != "conservative":sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + "\n")
+            else: sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + " but is speeding along" "\n")
         #tile action phase
         if player.tile == 24: #on go to jail 
-            block.acquire()
+            time.sleep(1) #-------------------------------------going to jail
             player.tile = 8 #reset player position to jail
             player.path.append(8)
             player.timesJailed += 1 #for player stats
-            block.release()
 
         elif player.tile == 0 or player.tile == 16 or player.tile == 8: # if the player is on GO or Jail do nothing
-            t = player.tile
-            if t == 0 or t == 16:
+            if player.tile == 0 or player.tile == 16:
                 if report: sys.stdout.write("player " + str(player.id) + " landed on GO " + "\n")
             else:
                 if report: sys.stdout.write("player " + str(player.id) + " is visiting jail " + "\n")
 
-        else: #can purchase tile #TODO move all of this to the player class???
-            block.acquire() #locks board
-
-            purResult = b.purchase(player) #tried to purchase tile from the board object
+        elif player.tile > 0 and player.tile < 32: #can purchase tile
+            purResult = b.purchase(player)
             if purResult == 2: # successful
-                if report: sys.stdout.write("player " + str(player.id) + " bought " + str(player.tile)  + "\n") #TODO move to player
-                player.canPurchase(b)
+                player.canPurchase(b, report, block)
             elif purResult == 0: # not enough money
                 if report: sys.stdout.write("player " + str(player.id) + " does not have enough money to buy " + str(player.tile)  + "\n")
-            else: # already owned
-                if report: sys.stdout.write("property already owned "  + "\n")
+            else: 
+                if report: sys.stdout.write("property " + str(player.tile) +  " already owned "  + "\n")
 
-            block.release() # locks board
+
+        else: print("something went very wrong - player jumped the board")
+
+            
         loop += 1
         curTime = time.time()
 
@@ -209,6 +199,7 @@ def printStats():
         print("------------------")
         print("---- PLAYER", player.id, "----")
         print("winner:", player.winner)
+        print("type:", player.type)
         print("Starting position:", player.startingPos)
         print("Times passed GO:", player.timesPassedGo)
         print("Times jailed:", player.timesJailed)
@@ -230,13 +221,14 @@ def printCSV():
     if report: print("\nprinting to CSV\n")
     with open ('output.csv', mode='w') as output:
         output = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','Passed_go','Jail','Props','Chest_Cards'])
+        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','Passed_go','Jail','Properties','Chest_Cards'])
         for player in players:
             playerChestCardsID = []
             for i in range(len(player.commChest)):
                 playerChestCardsID.append(player.commChest[i][0])
             output.writerow([player.id,player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID])
-    
+        strCount = str(gameCount)
+        output.writerow([''])
     df = pandas.read_csv('output.csv', index_col='ID')
     # df = pandas.read_csv('output.csv')
     if report: print(df)
@@ -252,7 +244,6 @@ def lezgo():
     print("")
 
 
-#start game timer
 
 #multithreading - one for each player running at main()
 def start():
@@ -307,6 +298,31 @@ def payout():
     winningPlayer.winner = True
 
 
+
+
+
+
+
+
+#sets up players using terminal input
+def manualSetup():
+    numPlayers = int(input("how many players: ")) #freaks out if you dont pass a1n int
+    for count in range(1,numPlayers+1):
+        print(numPlayers)
+        sys.stdout.write("what would you like player " + str(count))
+        playerID = input(" to be called? ")
+        player_t = player.Player(playerID)
+        startPos = -1
+        while(startPos != "1" and startPos != "2"):
+            startPos = input("type '1' or '2' to choose your starting position: ")
+            int(startPos)
+            print(type(startPos))
+            if startPos != "1" and startPos != "2":
+                print("please type either 'first' or 'second'")
+        if startPos == "1": player.startingPos = 0
+        elif startPos == "2": player.startingPos = 16
+        else: print("something went wrong with your starting position please start over")
+        players.append(player_t)
 
 # curTime = time.time() 
 # endTime = curTime + gameLength
