@@ -24,61 +24,75 @@ import pandas
 
 # key for todos:
 # '-' started
-# '--' finished but needs testing
+# '--' in progress
 # '---' being tested
 # '+' complete
 
-#TODO --- Add mutex lock around global board object
-#TODO --- chance card class
-#TODO --- community chest card class
+#TODO + Add mutex lock around global board object
+#TODO + chance card class
+#TODO + community chest card class
+
 #TODO --- Add method in the player class that adds up all money at the end of the game - need cards first
 #TODO -- Print data to CSV at end of the game
     # need to save different files instead of writing over the same one
 #TODO --- stats for each round - total at end
 #TODO - with and without chance cards
+    #option trading round or optional chance cards
 #TODO - print board in a readable format
-#TODO - add one more layer for tie
-#TODO read in final csv for testing
-#TODO support for different player types
+    #less important
+#TODO add one more layer for the tie check
+#TODO -- read in final csv
+#TODO -- support for different player types
 
+#non code todos
 #TODO get accurate timing for the player actions
-
-
+    #the way it works right now is the payer finished their turn
+    #even after the timer ends - the threads line back up but the rounds last longer than they should
+    #I dont know how to fix this without a lot of added complexity - but it varies up to 6 seconds
+        # add "playing" boolean thats checked during the buying method
 #TODO python logging class ?? i dont know what this is but it sounds promising
+#TODO right now it checks for time after the role, so a player can move to a space but not have time to buy it
 
-#this is where the magic happens, run this file to run the simulation
+
 
 block = threading.Lock() # mutex for the board
 c_lock = threading.Lock() # mutex for the card decks
 
 #initialize game elements
 
-#CONTROL BOARD BABY - only for testing
+#CONTROL BOARD BABY - these are overridden by the run() method
 b = board.Board()
 rounds = 10 #for testing
 players = []
 gameLength = 30.0
-#cards
 chanceDeck = cards.ChanceDeck()
 commDeck = cards.CommChestDeck()
-
 report = True
-
 curTime = time.time() 
 endTime = curTime + gameLength
-
-#players
-# player1 = player.Player("JIMMY")
-# player2 = player.Player("THERESA")
-# player1.startingPos = 0
-# player2.startingPos = 0
-# players.append(player1)
-# players.append(player2)
+startTime =curTime
 gameCount = 0
+bs = [30.0,2.0,2.0,1.0]
+ts = [2.0,2.0,2.0,2.0]
+player1 = player.Player("JIMMY")
+player2 = player.Player("THERESA")
+player1.startingPos = 0
+player2.startingPos = 0
+players.append(player1)
+players.append(player2)
+
 
 #sets up and runs a game instance
-def run(numPlayers, startingPos, length, gameNumber, post, types):
+"""
+####################################################################################################################
+"""
+def run(numPlayers, startingPos, length, gameNumber, post, types, trading, buyStage = bs, tradeStage = ts):
     #jesus christ theres got to be a better way than this
+    global bs
+    bs = buyStage
+    global ts
+    ts = tradeStage
+    
     global chanceDeck
     chanceDeck = cards.ChanceDeck()
     global commDeck
@@ -110,17 +124,21 @@ def run(numPlayers, startingPos, length, gameNumber, post, types):
     print("\nSTARTING GAME", gameCount)
     if not report:print("playing...")
 
-    global curTime 
-    curTime = time.time() 
-    global endTime 
-    endTime = curTime + length
-
     #give players money and cards
     gameSetup()
     #prints greeting
     if report:lezgo() 
+
+    global curTime 
+    curTime = time.time() 
+    global endTime 
+    endTime = curTime + length
+    global startTime
+    startTime = curTime
+
     #creates threads and plays game
-    start()
+    if trading: start()
+    else: noTradeStart()
     #gives rewards at the end of the game
     payout()
     #prints the stats of the game
@@ -131,6 +149,14 @@ def run(numPlayers, startingPos, length, gameNumber, post, types):
 
 
 
+
+################
+# GAME METHODS #
+################
+
+
+
+
 def gameSetup():
     #initialize player(s)
     for player in players:
@@ -138,125 +164,137 @@ def gameSetup():
         player.chance = chanceDeck.pullChanceCards()
         player.commChest = commDeck.pullChestCards()
    
-#runs the game
-def main(player):
-
-    if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
-    time.sleep(0.5)
-    global curTime
+#runs the game as one long buying round - mainly for testing
+def noTradeGame(player):
+    global curTime 
+    curTime = time.time()
+    global endTime 
     player.tile = player.startingPos
-
-    loop = 1
-    # for _ in range(0,rounds):
+    
     while curTime <= endTime:
-        #role phase
-
-        player.move(report)
-
-        if report: 
-            if player.type != "conservative":sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + "\n")
-            else: sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + " but is speeding along" "\n")
-        #tile action phase
-        if player.tile == 24: #on go to jail 
-            time.sleep(1) #-------------------------------------going to jail
-            player.tile = 8 #reset player position to jail
-            player.path.append(8)
-            player.timesJailed += 1 #for player stats
-
-        elif player.tile == 0 or player.tile == 16 or player.tile == 8: # if the player is on GO or Jail do nothing
-            if player.tile == 0 or player.tile == 16:
-                if report: sys.stdout.write("player " + str(player.id) + " landed on GO " + "\n")
-            else:
-                if report: sys.stdout.write("player " + str(player.id) + " is visiting jail " + "\n")
-
-        elif player.tile > 0 and player.tile < 32: #can purchase tile
-            purResult = b.purchase(player)
-            if purResult == 2: # successful
-                player.canPurchase(b, report, block)
-            elif purResult == 0: # not enough money
-                if report: sys.stdout.write("player " + str(player.id) + " does not have enough money to buy " + str(player.tile)  + "\n")
-            else: 
-                if report: sys.stdout.write("property " + str(player.tile) +  " already owned "  + "\n")
-
-
-        else: print("something went very wrong - player jumped the board")
-
-            
-        loop += 1
+        buyRound(player, endTime)
         curTime = time.time()
 
+#runs the buying stage of the game for a player for a certain amount of time
+def buyStage(player, rEndTime):
+    # print("buying")
+    curTime = time.time()
+    startTime = curTime
+    player.tile = player.startingPos
+    while curTime <= rEndTime:
+        buyRound(player,rEndTime)
+        curTime = time.time()
+    print("P",player.id,"buying", curTime - startTime)
 
-#prints out stats from the game <- possible logging class? 
-#maybe straight to google drive? messy but dope
+#runs the trading stage for a player for a certain amount of time
+def tradeStage(player, rEndTime):
+    curTime = time.time()
+    startTime = curTime
+    while curTime <= rEndTime:
+        tradeRound(player)
+        curTime = time.time()
+    print("P",player.id,"trading", curTime - startTime)
 
-def printStats(): 
-    print("--------------------------")
-    print("          STATS")
-    print("--------------------------")
+#this handles each move the player makes - and any purchases made during that turn
+def buyRound(player, endTime):
+    player.move(report)
+    if time.time() >= endTime: return # checks for time after the move - so right now the player can land on a space but not have time to buy it
+    if report: 
+        if player.type != "conservative":sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + "\n")
+        else: sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + " but is speeding along" "\n")
+    #tile action phase
+    if player.tile == 24: #on go to jail 
+        time.sleep(1) #-------------------------------------going to jail penalty
+        player.tile = 8 #reset player position to jail
+        player.path.append(8)
+        player.timesJailed += 1 #record count
 
-    for player in players:
+    elif player.tile == 0 or player.tile == 16 or player.tile == 8: # if the player is on GO or Jail do nothing
+        if player.tile == 0 or player.tile == 16:
+            if report: sys.stdout.write("player " + str(player.id) + " landed on GO " + "\n")
+        else:
+            if report: sys.stdout.write("player " + str(player.id) + " is visiting jail " + "\n")
 
-        print("------------------")
-        print("---- PLAYER", player.id, "----")
-        print("winner:", player.winner)
-        print("type:", player.type)
-        print("Starting position:", player.startingPos)
-        print("Times passed GO:", player.timesPassedGo)
-        print("Times jailed:", player.timesJailed)
-        print("Money:", player.money)
-        print("Money from Properties:", player.mProp)
-        print("Money from GO:", player.mGo)
-        print("Money from community chest:", player.mChest)
-        print("Number of roles:", player.numRoles)
-        print("Roles:", player.roles)
-        print("Path:", player.path)
-        print("Properties:", player.properties)
-        
-    b.print()
+    elif player.tile > 0 and player.tile < 32: #can purchase tile
+        purResult = b.purchase(player)
+        if purResult == 2: # successful
+            player.canPurchase(b, report, block)
+        elif purResult == 0: # not enough money
+            if report: sys.stdout.write("player " + str(player.id) + " does not have enough money to buy " + str(player.tile)  + "\n")
+        else:
+            if report: sys.stdout.write("property " + str(player.tile) +  " already owned "  + "\n")
+    else: print("something went very wrong -> player jumped the board") 
 
-#prints the output to a csv file
-#then reads it back in and prints it all pretty like - just make sure to give it enough room 
-#in the terminal window
-def printCSV():
-    if report: print("\nprinting to CSV\n")
-    with open ('output.csv', mode='w') as output:
-        output = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','Passed_go','Jail','Properties','Chest_Cards'])
-        for player in players:
-            playerChestCardsID = []
-            for i in range(len(player.commChest)):
-                playerChestCardsID.append(player.commChest[i][0])
-            output.writerow([player.id,player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID])
-        strCount = str(gameCount)
-        output.writerow([''])
-    df = pandas.read_csv('output.csv', index_col='ID')
-    # df = pandas.read_csv('output.csv')
-    if report: print(df)
-    return df
+#this will handle the trading round but dear god is it daunting
+#global variables that indicated when a trade is taking place
+#it will lock for only one player at a time can trade
+#each player will be checking
 
+#upload to a global list - each player then
+def tradeRound(player):
+    pass
 
-def lezgo():
-    for i in range(20):
-        print("-----------------------------------------------")
-        if i == 6: print("------< STARTING >-----------------------------")
-        if i == 9: print("----------------< MONOPOLY >-------------------")
-        if i == 12: print("--------------------------< SPEED >------------")
-    print("")
-
-
-
-#multithreading - one for each player running at main()
-def start():
+#this starts a game consisting of one long buy round
+def noTradeStart():
     threads = list()
     for player in players: #creates a thread for each player
-        playerThread = threading.Thread(target=main, args=(player,))
+        if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
+        playerThread = threading.Thread(target=noTradeGame, args=(player,))
         threads.append(playerThread) #adds to list
     for playerThread in threads: #starts each thread
         playerThread.start() #starts each player
     for index, thread in enumerate(threads): #waits for each thread to end before moving forward
         thread.join() #shouldn't be necessary but here just in case
 
+#this runs a game alternating between buying and trading rounds
+def start():
+    global curTime
 
+    for r in range(4):
+        print("Starting Round", r)
+        threads = list()
+        for player in players: #creates a thread for each player
+            # if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
+            endTime = curTime + bs[r]
+            playerThread = threading.Thread(target=buyStage, args=(player,endTime))
+            threads.append(playerThread) #adds to list
+        for playerThread in threads: #starts each thread
+            playerThread.start() #starts each player
+        for index, thread in enumerate(threads): #waits for each thread to end before moving forward
+            thread.join() #shouldn't be necessary but here just in case
+
+        threads.clear()
+
+        curTime = time.time()
+
+        for player in players: #creates a thread for each player
+            # if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
+            endTime = curTime + ts[r]
+            playerThread = threading.Thread(target=tradeStage, args=(player,endTime))
+            threads.append(playerThread) #adds to list
+        for playerThread in threads: #starts each thread
+            playerThread.start() #starts each player
+        for index, thread in enumerate(threads): #waits for each thread to end before moving forward
+            thread.join() #shouldn't be necessary but here just in case
+        print("")
+        curTime = time.time()
+
+
+
+
+
+###############################
+# POST GAME AND PRINT METHODS #
+###############################
+
+
+
+
+
+
+#runs at end of game
+#gives players money at the end of the game for community chest and properties
+#also determines the winner
 def payout():
     if report: print("--------------------------\n          PAYOUT       \n--------------------------")
     winningAmount = 0
@@ -292,16 +330,63 @@ def payout():
         if len(winners) > 1: # if there a tie on money and properties then call it a draw
             for player in winners:
                 player.winner = True
-
-
-
     winningPlayer.winner = True
 
 
+#prints out stats from the game <- possible logging class? 
+#maybe straight to google drive? messy but dope
+def printStats(): 
+    print("--------------------------")
+    print("          STATS")
+    print("--------------------------")
+
+    for player in players:
+
+        print("------------------")
+        print("---- PLAYER", player.id, "----")
+        print("winner:", player.winner)
+        print("type:", player.type)
+        print("Starting position:", player.startingPos)
+        print("Times passed GO:", player.timesPassedGo)
+        print("Times jailed:", player.timesJailed)
+        print("Money:", player.money)
+        print("Money from Properties:", player.mProp)
+        print("Money from GO:", player.mGo)
+        print("Money from community chest:", player.mChest)
+        print("Number of roles:", player.numRoles)
+        print("Roles:", player.roles)
+        print("Path:", player.path)
+        print("Properties:", player.properties)
+        
+    b.print()
+
+#prints the output to a csv file
+#then reads it back in and prints it all pretty like - just make sure to give it enough room in the terminal window
+def printCSV():
+    if report: print("\nprinting to CSV\n")
+    with open ('output.csv', mode='w') as output:
+        output = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','Passed_go','Jail','Properties','Chest_Cards'])
+        for player in players:
+            playerChestCardsID = []
+            for i in range(len(player.commChest)):
+                playerChestCardsID.append(player.commChest[i][0])
+            output.writerow([player.id,player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID])
+        strCount = str(gameCount)
+        output.writerow([''])
+    df = pandas.read_csv('output.csv', index_col='ID')
+    # df = pandas.read_csv('output.csv')
+    if report: print(df)
+    return df
 
 
-
-
+def lezgo():
+    for i in range(20):
+        print("-----------------------------------------------")
+        if i == 6: print("------< STARTING >-----------------------------")
+        if i == 9: print("----------------< MONOPOLY >-------------------")
+        if i == 12: print("--------------------------< SPEED >------------")
+    print("")
 
 
 #sets up players using terminal input

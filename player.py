@@ -59,7 +59,7 @@ class Player:
             if report: sys.stdout.write("player " + str(self.id) + " passed GO and received 1000 dollars" + "\n")
 
     #moves player, adds money if passed go
-    def move(self,report):
+    def move(self, report):
         role = random.randint(1,6) 
         time.sleep(random.randint(2,3))#--------------------------time to moce
 
@@ -78,7 +78,7 @@ class Player:
 
     #when the player lands on a property this method handles whether or not to buy it
     def canPurchase(self, b, report, block):
-        time.sleep(random.randint(3, 4)) #------------------------------------- random between 4 - 6
+        time.sleep(random.randint(3, 4)) #------------------------------------- time to purchase
         
         block.acquire()
         tile = b.getTile(self.tile)
@@ -111,7 +111,8 @@ class Player:
                     self.money += 4000
                     self.mProp += 4000
             
-
+    def wait(self, time):
+        time.sleep(time)
 
 # p = Player(1)
 # p.properties.append(1)
