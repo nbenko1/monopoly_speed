@@ -1,6 +1,6 @@
 
 import random
-import player
+# import player
 
 # used by both classes
 # chooses a random card from a deck depending on frequency
@@ -34,12 +34,14 @@ class ChanceDeck:
         # print("distributing chance cards")
         return pullCards(self.Cards, 4)
 
-    def playChanceCard(self, player, b, block, report):
+    def playChanceCard(self, player, players, b, block, report):
         time.sleep(random.randint(0.0,0.4)) # slightly randomizes which player gets to go first in each round
         #loop through cards
 
         #while the player makes decision the player and board need to be locked
-
+        block.acquire()
+        player.playChance(players,player,b,report)
+        block.release()
 
         #1: lock b -> update variables
         #2: used reactionary?? jeusus

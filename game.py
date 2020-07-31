@@ -86,6 +86,7 @@ players.append(player2)
 """
 ####################################################################################################################
 """
+#this method sets up and runs games depending on the input
 def run(numPlayers, startingPos, length, gameNumber, post, types, trading, buyStage = bs, tradeStage = ts):
     #jesus christ theres got to be a better way than this
     global bs
@@ -125,7 +126,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, buySt
     if not report:print("playing...")
 
     #give players money and cards
-    gameSetup()
+    gameSetup(players)
     #prints greeting
     if report:lezgo() 
 
@@ -140,7 +141,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, buySt
     if trading: start()
     else: noTradeStart()
     #gives rewards at the end of the game
-    payout()
+    payout(players)
     #prints the stats of the game
     if report: printStats()
     #saves stats to CSV
@@ -157,7 +158,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, buySt
 
 
 
-def gameSetup():
+def gameSetup(players):
     #initialize player(s)
     for player in players:
         player.money += 5000 # starts with 5000
@@ -230,9 +231,22 @@ def buyRound(player, endTime):
 #it will lock for only one player at a time can trade
 #each player will be checking
 
+
+
+
+
 #upload to a global list - each player then
 def tradeRound(player):
     pass
+
+
+
+
+
+
+
+
+
 
 #this starts a game consisting of one long buy round
 def noTradeStart():
@@ -295,7 +309,8 @@ def start():
 #runs at end of game
 #gives players money at the end of the game for community chest and properties
 #also determines the winner
-def payout():
+def payout(players):
+    report = False #for testing
     if report: print("--------------------------\n          PAYOUT       \n--------------------------")
     winningAmount = 0
     winners = []

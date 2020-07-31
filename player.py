@@ -5,6 +5,11 @@ import time
 import random
 import sys
 
+import cards
+
+
+chance = cards.ChanceDeck()
+
 
 brown = [1,3]
 lblue = [5,6,7]
@@ -114,9 +119,45 @@ class Player:
     def wait(self, time):
         time.sleep(time)
 
-# p = Player(1)
-# p.properties.append(1)
-# p.properties.append(3)
+
+
+    def playChance(self, players, player, b, report):
+        card = random.choice(self.chance)
+        
+        print(card)
+
+        if card[0] == 1: #take an unknowned property
+            pass
+
+        
+        if card[0] == 2: #cancel a chance card played against you
+            pass
+        if card[0] == 3: #swap with another player
+            pass
+        if card[0] == 4: #steal from another player
+            pass
+        if card[0] == 5: #return any property to the board
+            pass
+
+        self.chance.remove(card)
+        
+    def findUnneededCard(self):
+        lonelyProperties = self.properties
+        for prop in self.properties: #O(n^3) nice should check is prop matches card
+            for card in self.commChest:
+                for i in range(5,5+card[4]):
+                    if prop in card[i]:
+                        lonelyProperties.remove(prop)
+        for prop in lonelyProperties:
+            
+
+
+
+
+
+p = Player(1)
+p.chance = chance.pullChanceCards()
+p.playChance()
 
 # p.properties.append(9)
 # p.properties.append(10)
