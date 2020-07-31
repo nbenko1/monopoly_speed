@@ -141,23 +141,23 @@ class Player:
 
         self.chance.remove(card)
         
-    def findUnneededCard(self):
-        lonelyProperties = self.properties
-        for prop in self.properties: #O(n^3) nice should check is prop matches card
-            for card in self.commChest:
-                for i in range(5,5+card[4]):
-                    if prop in card[i]:
-                        lonelyProperties.remove(prop)
-        for prop in lonelyProperties:
+    # def findUnneededCard(self):
+    #     lonelyProperties = self.properties
+    #     for prop in self.properties: #O(n^3) nice should check is prop matches card
+    #         for card in self.commChest:
+    #             for i in range(5,5+card[4]):
+    #                 if prop in card[i]:
+    #                     lonelyProperties.remove(prop)
+    #     for prop in lonelyProperties:
             
 
 
 
 
 
-p = Player(1)
-p.chance = chance.pullChanceCards()
-p.playChance()
+# p = Player(1)
+# p.chance = chance.pullChanceCards()
+# p.playChance()
 
 # p.properties.append(9)
 # p.properties.append(10)

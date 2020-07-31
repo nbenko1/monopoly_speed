@@ -21,15 +21,17 @@ numberOfRounds = 1
 #real time print statements from the game
 printStatements = True
 
-#trading round
-trading = True
+#True: separate buying and trading rounds
+#False: one long buying round
+trading = False
 
 #type of players
 playerTypes = ["g","s"] #TODO long simulations should shuffle this to avoid quirks
 
 #timing charts
 #if False will default to regular game timings
-customTimes = True #if this is true the round timimg will be overriden with the following times
+#"trading" must be True
+customTimes = False #if this is true the round timing will be overriden with the following times
 buyStage = [3.0,2.0,2.0,1.0]
 tradeStage = [4.0,5.0,7.0,7.0]
 
@@ -40,11 +42,6 @@ tradeStage = [4.0,5.0,7.0,7.0]
 
 
 
-
-
-
-
-# df = game.run(numberOfPlayers, startPosition, gameLength, numberOfRounds, printStatements, playerTypes)
 
 frames = []
 winnerList = []

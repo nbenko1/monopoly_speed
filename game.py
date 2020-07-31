@@ -377,16 +377,41 @@ def printStats():
 
 #prints the output to a csv file
 #then reads it back in and prints it all pretty like - just make sure to give it enough room in the terminal window
+
+
+
+
+
+
+
+
+
+
 def printCSV():
     if report: print("\nprinting to CSV\n")
     with open ('output.csv', mode='w') as output:
         output = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','Passed_go','Jail','Properties','Chest_Cards'])
+
+########################
+#    CHANGE HEADER     #
+########################
+        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','path','Passed_go','Jail','Properties','Chest_Cards','title'])
+########################
+
         for player in players:
             playerChestCardsID = []
             for i in range(len(player.commChest)):
                 playerChestCardsID.append(player.commChest[i][0])
-            output.writerow([player.id,player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID])
+
+########################
+#    CHANGE DATA       #
+########################
+            output.writerow([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID])
+########################
+
+
+
+
         strCount = str(gameCount)
         output.writerow([''])
     df = pandas.read_csv('output.csv', index_col='ID')
