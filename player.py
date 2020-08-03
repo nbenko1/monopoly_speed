@@ -4,11 +4,14 @@
 import time
 import random
 import sys
+from operator import itemgetter
 
 import cards
 
 
 chance = cards.ChanceDeck()
+chest = cards.CommChestDeck()
+
 
 
 brown = [1,3]
@@ -52,7 +55,7 @@ class Player:
         self.mGo = 0 #money from passing GO
         self.mProp = 0 #money from owning properties
         self.mChest = 0 #money from chest cards
-        self.money = 0 # total combination of all money source   <--------------rethink
+        self.money = 0 # total combination of all money source  
     
         #money = 20
 
@@ -66,7 +69,7 @@ class Player:
     #moves player, adds money if passed go
     def move(self, report):
         role = random.randint(1,6) 
-        time.sleep(random.randint(2,3))#--------------------------time to moce
+        time.sleep(random.uniform(0.5,1))#--------------------------time to move
 
         self.roles.append(role) # adds role to records
         
@@ -83,7 +86,7 @@ class Player:
 
     #when the player lands on a property this method handles whether or not to buy it
     def canPurchase(self, b, report, block):
-        time.sleep(random.randint(3, 4)) #------------------------------------- time to purchase
+        time.sleep(random.uniform(3.0,4.0)) #------------------------------------- time to purchase
         
         block.acquire()
         tile = b.getTile(self.tile)
@@ -123,10 +126,12 @@ class Player:
 
     def playChance(self, players, player, b, report):
         card = random.choice(self.chance)
+        while card[0] == 2: # cant draw the cancel card 
+            card = random.choice(self.chance)
         
         print(card)
 
-        if card[0] == 1: #take an unknowned property
+        if card[0] == 1: #take any unowned property
             pass
 
         
@@ -136,28 +141,147 @@ class Player:
             pass
         if card[0] == 4: #steal from another player
             pass
-        if card[0] == 5: #return any property to the board
+        if card[0] == 5: #return any property owned by another player to the board
             pass
 
         self.chance.remove(card)
         
-    # def findUnneededCard(self):
-    #     lonelyProperties = self.properties
-    #     for prop in self.properties: #O(n^3) nice should check is prop matches card
-    #         for card in self.commChest:
-    #             for i in range(5,5+card[4]):
-    #                 if prop in card[i]:
-    #                     lonelyProperties.remove(prop)
-    #     for prop in lonelyProperties:
-            
 
 
+
+
+    """
+    needs some thought - more balance - god this is kicking my ass
+    """
+    #assigns a score to each property owned by the player
+    #then chooses the property with the lowest score and returns it
+    #need to TEST THE HELL out of this method
+    #returns -1 if no properties
+    #TODO fix group card scoring - mostly done, might be worth a another look
+    def findLeastNeededCard(self):
+        scoreProp = [] # this will keep track of each property and the score
+        for i in range(len(self.properties)):
+            #[propID, score]
+            scoreProp.append([self.properties[i], 0]) # populated list
+        for j in range(len(self.properties)): #O(n^3) ~nice~ should check if prop matches chest card
+            for card in self.commChest:
+                for i in range(5,len(card)):
+                    if self.properties[j] in card[i]: # if the property matches a req on a chest card
+                        scoreProp[j][1] = scoreProp[j][1] + 1 # gives that property points
+                        if card == [2, 1, "group", 2000, 2, yellow, dblue]:
+                            scoreProp[j][1] = scoreProp[j][1] + 2 #group card gets extra boost
+        
+        print("after card", scoreProp)
+
+        # print(scoreProp)
+        countSets = []
+        for i in range(len(pSet)):
+            countSets.append([pSet[i],0]) # this will count how many properties per set [player props, total props]        
+        for prop in self.properties:
+            for countSet in countSets:
+                if prop in countSet[0]:
+                    countSet[1] = countSet[1] + 1
+
+        # print(countSets, '\n')
+
+        for i in range(len(scoreProp)): # for each score tuple
+            for countSet in countSets: # for each set with count
+                if scoreProp[i][0] in countSet[0]:
+                    if countSet[1] == len(countSet[0]): # if a full set
+                        scoreProp[i][1] = scoreProp[i][1] + 5
+                    elif countSet[1] == len(countSet[0]) - 1: # if only missing one card
+                        scoreProp[i][1] = scoreProp[i][1] + 2 
+                    else: # only card in the set
+                        pass # no points
+
+                    # scoreProp[i][1] = scoreProp[i][1] - (len(countSet[0]) - countSet[1]) #subtracts a point for each property missing from the set
+        worstPropScore = float("inf") # really high number
+        worstProp = -1
+        for prop in scoreProp:
+            if prop[1] < worstPropScore:
+                worstPropScore = prop[1]
+                worstProp = prop[0]
+
+        print("after sets", scoreProp, "\n")
+
+        return worstProp
+
+
+    # ranks each possible property and returns the list as a list of tuples with [prop id, score]
+    def findWantedProperty(self):
+        propScore = []
+        for props in pSet:
+            for prop in props:
+                propScore.append([prop, 0]) # a list with [prop, score]
+
+        #addes points if property matches reqs on chest cards
+        for propSet in propScore:
+            for card in self.commChest:
+                for i in range(5,len(card)):
+                    if propSet[0] in card[i]: # if the property matches a req on a chest card
+                        propSet[1] = propSet[1]  + 1 # gives that property points
+                        if card == [2, 1, "group", 2000, 2, yellow, dblue]:
+                            propSet[1] = propSet[1] + 2 #group card gets extra boost
+
+        # print(propScore)
+
+        # add points for sets
+        countSets = []
+        for i in range(len(pSet)):
+            countSets.append([pSet[i],0]) # this will count how many properties per set [player props, total props]        
+        for prop in self.properties:
+            for countSet in countSets:
+                if prop in countSet[0]:
+                    countSet[1] = countSet[1] + 1
+
+        # print(countSets)
+
+        for ownedPropScore in countSets:
+            for propSet in propScore:
+                if propSet[0] in ownedPropScore[0]:
+                    propSet[1] = propSet[1] + ownedPropScore[1]
+
+        print(propScore)
+        sortedScore = sorted(propScore, key = lambda x: x[1], reverse=True)
+        print(sortedScore)
+
+        sortedNoScore = []
+        for prop, score in sortedScore:
+            sortedNoScore.append(prop)
+
+        print(sortedNoScore)
+
+        #return sorted list of all possible propreties from best to worst
+        return sortedNoScore
+
+
+        
+
+# in file testing
+
+
+# p = Player(1)
+# p.commChest.append([8, 1, "set", 3000, 1, orange])
+# p.commChest.append([2, 1, "group", 2000, 2, yellow, dblue])
+# p.properties.extend([1,3,5,7,13,14])
+# p.findWantedProperty()
 
 
 
 # p = Player(1)
 # p.chance = chance.pullChanceCards()
-# p.playChance()
+# p.commChest = chest.pullChestCards()
+# p.commChest.append([1, 1, "partGroup", 2000, 3, brown, lblue, dblue])
+# p.commChest.append([8, 1, "set", 3000, 1, orange])
+# p.commChest.append([10, 2, "anySet", 1000, 10, brown, lblue, pink, orange, red, yellow, green, dblue, utilities])
+# p.commChest.append([11, 1, "rail", 1000, 4, railroads])
+# print(p.commChest)
+# p.properties.append(1)
+# p.properties.append(3)
+# p.properties.append(9)
+# p.properties.append(15)
+# p.properties.append(14)
+# print(p.findLeastNeededCard())
 
 # p.properties.append(9)
 # p.properties.append(10)

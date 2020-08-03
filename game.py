@@ -28,9 +28,9 @@ import pandas
 # '---' being tested
 # '+' complete
 
-#TODO + Add mutex lock around global board object
-#TODO + chance card class
-#TODO + community chest card class
+# + Add mutex lock around global board object
+# + chance card class
+# + community chest card class
 
 #TODO --- Add method in the player class that adds up all money at the end of the game - need cards first
 #TODO -- Print data to CSV at end of the game
@@ -43,8 +43,11 @@ import pandas
 #TODO add one more layer for the tie check
 #TODO -- read in final csv
 #TODO -- support for different player types
+#TODO which chest cards gave which money
+#TODO choose whether or not to use trade chance card
 
-#non code todos
+
+#non code todos and figure outs
 #TODO get accurate timing for the player actions
     #the way it works right now is the payer finished their turn
     #even after the timer ends - the threads line back up but the rounds last longer than they should
@@ -238,13 +241,6 @@ def buyRound(player, endTime):
 #upload to a global list - each player then
 def tradeRound(player):
     pass
-
-
-
-
-
-
-
 
 
 

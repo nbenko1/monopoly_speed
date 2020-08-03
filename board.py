@@ -59,5 +59,10 @@ class Board:
                 # print("ID: ",self.getTile(i)[0],"Owner:",self.getTile(i)[1])
                 print(self.getTile(i))
 
+    # looks through what the player needs and returns the best card from the board
+    # def bestPropForPlayer(self, player):
+        
+
+
 # b = Board()
 # b.print()

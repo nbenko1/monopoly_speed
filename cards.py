@@ -90,7 +90,7 @@ class CommChestDeck:
             6: [7, 1, "set", 3000, 1, pink],
             7: [8, 1, "set", 3000, 1, orange],
             8: [9, 1, "set", 2000, 1, utilities],
-            9: [10, 2, "anySet", 1000, 10, brown, lblue, pink, orange, red, yellow, green, dblue, utilities],   
+            9: [10, 2, "anySet", 1000, 9, brown, lblue, pink, orange, red, yellow, green, dblue, utilities],   
             10: [11, 1, "rail", 1000, 4, railroads]
         }
 
