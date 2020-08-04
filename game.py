@@ -31,8 +31,10 @@ import pandas
 # + Add mutex lock around global board object
 # + chance card class
 # + community chest card class
+# + read in final csv
+# + support for different player types
+# + Add method in the player class that adds up all money at the end of the game - need cards first
 
-#TODO --- Add method in the player class that adds up all money at the end of the game - need cards first
 #TODO -- Print data to CSV at end of the game
     # need to save different files instead of writing over the same one
 #TODO --- stats for each round - total at end
@@ -41,10 +43,10 @@ import pandas
 #TODO - print board in a readable format
     #less important
 #TODO add one more layer for the tie check
-#TODO -- read in final csv
-#TODO -- support for different player types
 #TODO which chest cards gave which money
 #TODO choose whether or not to use trade chance card
+
+#TODO check out the sheet
 
 
 #non code todos and figure outs
@@ -229,15 +231,9 @@ def buyRound(player, endTime):
             if report: sys.stdout.write("property " + str(player.tile) +  " already owned "  + "\n")
     else: print("something went very wrong -> player jumped the board") 
 
+
+
 #this will handle the trading round but dear god is it daunting
-#global variables that indicated when a trade is taking place
-#it will lock for only one player at a time can trade
-#each player will be checking
-
-
-
-
-
 #upload to a global list - each player then
 def tradeRound(player):
     pass
@@ -371,18 +367,10 @@ def printStats():
         
     b.print()
 
+
+
 #prints the output to a csv file
 #then reads it back in and prints it all pretty like - just make sure to give it enough room in the terminal window
-
-
-
-
-
-
-
-
-
-
 def printCSV():
     if report: print("\nprinting to CSV\n")
     with open ('output.csv', mode='w') as output:
@@ -410,11 +398,14 @@ def printCSV():
 
         strCount = str(gameCount)
         output.writerow([''])
-    df = pandas.read_csv('output.csv', index_col='ID')
+    # df = pandas.read_csv('output.csv', index_col='ID')
     # df = pandas.read_csv('output.csv')
-    if report: print(df)
-    return df
-
+    # if report: print(df)
+    # return df
+    details = []
+    for player in players:
+        details.append([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID])
+    return details
 
 def lezgo():
     for i in range(20):
@@ -427,7 +418,7 @@ def lezgo():
 
 #sets up players using terminal input
 def manualSetup():
-    numPlayers = int(input("how many players: ")) #freaks out if you dont pass a1n int
+    numPlayers = int(input("how many players: ")) #freaks out if you dont pass an int
     for count in range(1,numPlayers+1):
         print(numPlayers)
         sys.stdout.write("what would you like player " + str(count))

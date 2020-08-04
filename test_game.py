@@ -83,9 +83,9 @@ class TestGame(unittest.TestCase):
         tempPlayer = p.Player(1)
         players = [tempPlayer]     
 
+        # tempPlayer.commChest.append(self.chest.Cards[9])
         tempPlayer.commChest.append(self.chest.Cards[9])
-        tempPlayer.commChest.append(self.chest.Cards[10])
-        self.assertEquals(tempPlayer.commChest[0],[10, 2, "anySet", 1000, 10, self.brown, self.lblue, self.pink, self.orange, self.red, self.yellow, self.green, self.dblue, self.utilities])
+        self.assertEquals(tempPlayer.commChest[0],[10, 2, "anySet", 1000, 9, self.brown, self.lblue, self.pink, self.orange, self.red, self.yellow, self.green, self.dblue, self.utilities])
         tempPlayer.properties.append(17)
         tempPlayer.properties.append(18)
         tempPlayer.properties.append(19)

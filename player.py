@@ -86,7 +86,7 @@ class Player:
 
     #when the player lands on a property this method handles whether or not to buy it
     def canPurchase(self, b, report, block):
-        time.sleep(random.uniform(3.0,4.0)) #------------------------------------- time to purchase
+        time.sleep(random.uniform(1.0,2.0)) #------------------------------------- time to purchase
         
         block.acquire()
         tile = b.getTile(self.tile)
