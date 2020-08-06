@@ -69,7 +69,7 @@ class Player:
     #moves player, adds money if passed go
     def move(self, report):
         role = random.randint(1,6) 
-        time.sleep(random.uniform(0.5,1))#--------------------------time to move
+        time.sleep(random.uniform(0.5,1.0))#--------------------------time to move
 
         self.roles.append(role) # adds role to records
         
@@ -118,10 +118,10 @@ class Player:
                 elif len(prop) == 4:
                     self.money += 4000
                     self.mProp += 4000
-            
+
+
     def wait(self, time):
         time.sleep(time)
-
 
 
     def playChance(self, players, player, b, report):
@@ -133,8 +133,6 @@ class Player:
 
         if card[0] == 1: #take any unowned property
             pass
-
-        
         if card[0] == 2: #cancel a chance card played against you
             pass
         if card[0] == 3: #swap with another player
@@ -146,10 +144,6 @@ class Player:
 
         self.chance.remove(card)
         
-
-
-
-
     """
     needs some thought - more balance - god this is kicking my ass
     """

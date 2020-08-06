@@ -66,6 +66,7 @@ for gameNumber in range(1,numberOfRounds+1):
 
     # so if you wanted the total money from the 2nd player youd do --> "details[1][3]"
     # this is the what I'll use for all the analysis before its put into the csv
+    
     '''
     list of indices for 'details'
     0: ID
