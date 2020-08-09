@@ -15,10 +15,10 @@ numberOfPlayers = 3
 startPosition = [0,0,0]
 
 #how long the game will go in seconds
-gameLength = 20.0
+gameLength = 30.0
 
-#number of games to play
-numberOfRounds = 2
+#number of games t0 play
+numberOfRounds = 9
 
 #real time print statements from the game
 printStatements = False
@@ -30,6 +30,11 @@ trading = False
 #type of players
 playerTypes = ["g","s","c"] #TODO long simulations should shuffle this to avoid quirks
 
+# if == 1.0 then it will play at normal speed
+# each wait command length is divided by this number
+# so == 2 is 2x normal speed, 3 is 3x and so on
+timeMultiplier = 1.0
+
 #timing charts
 #if False will default to regular game timings
 #"trading" must be True for this to come into effect
@@ -37,8 +42,7 @@ customTimes = False #if this is true the round timing will be overriden with the
 buyStage = [3.0,2.0,2.0,1.0]
 tradeStage = [4.0,5.0,7.0,7.0]
 
-# buyStage = [3.0,2.0,2.0,1.0]
-# tradeStage = [4.0,5.0,7.0,7.0]
+
 
 #---------------------------------------------#
 
@@ -52,11 +56,24 @@ strategicPath = [] # same for strategic
 conservativePath = [] #^^^ for cons
 
 
-
+# gameLength = gameLength/quickTiming # speeds up game
+quickTiming = timeMultiplier
 for gameNumber in range(1,numberOfRounds+1):
 
-    if customTimes: details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, buyStage, tradeStage)
-    else: details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading)
+    # for time structure testing
+    
+    # gameLength = 60
+    # if gameNumber <= 3: 
+    #     quickTiming = 1.0
+    # elif gameNumber >= 4 and gameNumber <= 6:
+    #     quickTiming = 3.0
+    # elif gameNumber >= 7 and gameNumber <= 9: 
+    #     quickTiming = 5.0
+
+    if quickTiming != 1.0: gameLength = gameLength/quickTiming + quickTiming*0.425 # adjusts for time drift
+
+    if customTimes: details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming, buyStage, tradeStage)
+    else: details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming)
     df = pandas.read_csv('output.csv', index_col='ID') # creates a dataframe by reading the output from the previous game
     frames.append(df)
 
@@ -90,9 +107,9 @@ for gameNumber in range(1,numberOfRounds+1):
             winnerList.append(details[i][1])
         if details[i][1] == 'greedy': # saves the path for the greedy player
             greedyPath.extend(details[i][9])
-        if details[i][1] == 'strategic': # for the strategic player
+        if details[i][1] == 'strategic': # path for the strategic player
             strategicPath.extend(details[i][9])
-        if details[i][1] == 'conservative': # for the conservative player
+        if details[i][1] == 'conservative': # path for the conservative player
             conservativePath.extend(details[i][9])
 
 
@@ -119,6 +136,6 @@ df.to_csv(r'reports\conservative_path.csv')
 
 player_result = pandas.concat(frames) #combines all the games details
 print(winnerList)
-player_result.to_csv(r'reports\players_report.csv')
+player_result.to_csv(r'reports\report.csv')
 
 

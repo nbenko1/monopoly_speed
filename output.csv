@@ -1,5 +1,6 @@
-ID,player_type,winner?,Total_Money,Money_from_GO,Money_from_Chest,Money_from_properties,Starting_Pos,num_moves,path,Passed_go,Jail,Properties,Chest_Cards,title
-1,greedy,False,7000,2000,0,6000,0,16,"[2, 5, 10, 13, 14, 19, 23, 27, 29, 0, 2, 7, 8, 14, 15, 21]",2,0,"[2, 5, 10, 13, 19, 23]","[10, 8, 9]"
-2,strategic,True,8000,1000,2000,4000,0,5,"[4, 8, 14, 18, 20]",1,0,"[4, 14, 18, 20]","[3, 6, 4]"
-3,conservative,False,7000,2000,0,0,0,19,"[1, 7, 11, 15, 16, 20, 22, 25, 30, 0, 4, 6, 12, 13, 14, 17, 23, 25, 26]",2,0,[],"[1, 5, 11]"
+ID,player_type,winner?,Total_Money,Money_from_GO,Money_from_Chest,Money_from_properties,Starting_Pos,num_moves,path,Passed_go,Jail,Properties,Chest_Cards
+1,greedy,True,9000,2000,2000,7000,0,21,"[1, 4, 5, 11, 15, 19, 25, 30, 0, 1, 3, 5, 11, 16, 17, 22, 28, 29, 1, 2, 7]",2,0,"[1, 4, 5, 11, 15, 19, 22]","[5, 10, 3]"
+2,strategic,False,7000,2000,0,7000,0,20,"[1, 2, 6, 7, 11, 13, 16, 17, 22, 24, 8, 14, 18, 22, 26, 27, 29, 31, 1, 2, 5]",2,1,"[1, 2, 6, 7, 13, 17, 18]","[10, 8, 9]"
+3,conservative,False,8000,3000,0,0,0,24,"[6, 10, 14, 16, 20, 24, 8, 12, 13, 17, 20, 26, 27, 29, 2, 3, 5, 7, 12, 18, 20, 23, 24, 8, 13, 14]",3,2,[],"[11, 6, 1]"
+,9,round,14.544921159744263,seceonds,5.0,x speed
 ""

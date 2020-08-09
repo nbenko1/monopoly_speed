@@ -86,18 +86,25 @@ player2.startingPos = 0
 players.append(player1)
 players.append(player2)
 
+quickTiming = 1.0
+OfficialStartTime = 0.0
+OfficialEndTime = 0.0
+
 
 #sets up and runs a game instance
 """
 ####################################################################################################################
 """
 #this method sets up and runs games depending on the input
-def run(numPlayers, startingPos, length, gameNumber, post, types, trading, buyStage = bs, tradeStage = ts):
+def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timing, buyStage = bs, tradeStage = ts):
     #jesus christ theres got to be a better way than this
     global bs
     bs = buyStage
     global ts
     ts = tradeStage
+
+    global quickTiming
+    quickTiming = timing
     
     global chanceDeck
     chanceDeck = cards.ChanceDeck()
@@ -124,6 +131,9 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, buySt
             tempPlayer = player.Player(i+1)
         elif types[i] == "s": #strategic player
             tempPlayer = strategicPlayer.StrategicPlayer(i+1)
+        else: 
+            print("bad player type input")
+            return
         tempPlayer.startingPos = startingPos[i]
         players.append(tempPlayer)
 
@@ -137,14 +147,21 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, buySt
 
     global curTime 
     curTime = time.time() 
+
     global endTime 
     endTime = curTime + length
     global startTime
     startTime = curTime
+    global OfficialStartTime
+    OfficialStartTime = curTime
+    global OfficialEndTime
 
     #creates threads and plays game
     if trading: start()
     else: noTradeStart()
+
+    OfficialEndTime = time.time()
+
     #gives rewards at the end of the game
     payout(players)
     #prints the stats of the game
@@ -203,14 +220,19 @@ def tradeStage(player, rEndTime):
 
 #this handles each move the player makes - and any purchases made during that turn
 def buyRound(player, endTime):
-    player.move(report)
+    global quickTiming
+    player.move(report, quickTiming)
     if time.time() >= endTime: return # checks for time after the move - so right now the player can land on a space but not have time to buy it
     if report: 
         if player.type != "conservative":sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + "\n")
         else: sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + " but is speeding along" "\n")
     #tile action phase
     if player.tile == 24: #on go to jail 
-        time.sleep(1) #-------------------------------------going to jail penalty
+        
+        player.wait(0.5, 0.8, quickTiming)
+        # time.sleep(random.randint(1,2)/quickTiming) #----------------------------------------------------------------------------------------going to jail penalty
+        # time.sleep(random.uniform(0.5,0.8)/quickTiming) #----------------------------------------------------------------------------------------going to jail penalty
+
         player.tile = 8 #reset player position to jail
         player.path.append(8)
         player.timesJailed += 1 #record count
@@ -224,7 +246,7 @@ def buyRound(player, endTime):
     elif player.tile > 0 and player.tile < 32: #can purchase tile
         purResult = b.purchase(player)
         if purResult == 2: # successful
-            player.canPurchase(b, report, block)
+            player.canPurchase(b, report, block, quickTiming)
         elif purResult == 0: # not enough money
             if report: sys.stdout.write("player " + str(player.id) + " does not have enough money to buy " + str(player.tile)  + "\n")
         else:
@@ -314,8 +336,7 @@ def payout(players):
         player.calculateMoney()
     
         if player.money >= winningAmount:
-            winningPlayer = player
-            winningAmount = winningPlayer.money
+            winningAmount = player.money
 
     for player in players:
         if player.money == winningAmount:
@@ -323,21 +344,19 @@ def payout(players):
 
     if len(winners) > 1: # if theres a tie on money compare number of properties
         winningPropAmount = 0
-        for player in players:
+        for player in winners: # finds the player with the most properties out of the players who tied for most money
             propAmount = len(player.properties)
             if propAmount >= winningPropAmount:
                 winningPropAmount = propAmount
-                winningPlayer = player
         
-        winners = []
-        for player in players: # test for property tie
+        propWinners = []
+        for player in winners: # test for property tie
             if len(player.properties) == winningPropAmount:
-                winners.append(player)
+                propWinners.append(player)
+        winners = propWinners
 
-        if len(winners) > 1: # if there a tie on money and properties then call it a draw
-            for player in winners:
-                player.winner = True
-    winningPlayer.winner = True
+    for player in winners:
+        player.winner = True
 
 
 #prints out stats from the game <- possible logging class? 
@@ -370,16 +389,20 @@ def printStats():
 
 
 #prints the output to a csv file
-#then reads it back in and prints it all pretty like - just make sure to give it enough room in the terminal window
+#then reads it back in and prints it all pretty like
 def printCSV():
+    gameTime = OfficialEndTime - OfficialStartTime
     if report: print("\nprinting to CSV\n")
     with open ('output.csv', mode='w') as output:
         output = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
+
+        
+
 ########################
 #    CHANGE HEADER     #
 ########################
-        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','path','Passed_go','Jail','Properties','Chest_Cards','title'])
+        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','path','Passed_go','Jail','Properties','Chest_Cards'])
 ########################
 
         for player in players:
@@ -393,8 +416,7 @@ def printCSV():
             output.writerow([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID])
 ########################
 
-
-
+        output.writerow(["",gameCount,"round" ,gameTime, "seceonds", quickTiming, "x speed"])
 
         strCount = str(gameCount)
         output.writerow([''])
@@ -417,7 +439,7 @@ def lezgo():
 
 
 #sets up players using terminal input
-def manualSetup():
+def manualSetup(): # OBSELETE
     numPlayers = int(input("how many players: ")) #freaks out if you dont pass an int
     for count in range(1,numPlayers+1):
         print(numPlayers)

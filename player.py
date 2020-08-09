@@ -57,8 +57,6 @@ class Player:
         self.mChest = 0 #money from chest cards
         self.money = 0 # total combination of all money source  
     
-        #money = 20
-
     def passGO(self, oldPos, newPos, report):
         if oldPos < 0 and newPos >= oldPos or oldPos < 16 and newPos >= 16:
             self.timesPassedGo += 1
@@ -67,9 +65,13 @@ class Player:
             if report: sys.stdout.write("player " + str(self.id) + " passed GO and received 1000 dollars" + "\n")
 
     #moves player, adds money if passed go
-    def move(self, report):
+    def move(self, report, quickTiming):
         role = random.randint(1,6) 
-        time.sleep(random.uniform(0.5,1.0))#--------------------------time to move
+
+        self.wait(1.8, 2.3, quickTiming)
+        # time.sleep(random.uniform(1.8,2.3)/quickTiming) #--------------------------------------- time to move
+        # time.sleep(random.randint(1,2)/quickTiming) #--------------------------------------- time to move
+
 
         self.roles.append(role) # adds role to records
         
@@ -85,13 +87,18 @@ class Player:
     
 
     #when the player lands on a property this method handles whether or not to buy it
-    def canPurchase(self, b, report, block):
-        time.sleep(random.uniform(1.0,2.0)) #------------------------------------- time to purchase
+    def canPurchase(self, b, report, block, quickTiming):
+       
+        time.sleep(random.randint(2,3)/quickTiming)   #--------------------------------------- time to purchase
+
+
+        # time.sleep(random.uniform(2.0,2.5)/quickTiming)   #--------------------------------------- time to purchase
         
-        block.acquire()
+
+        block.acquire() #mutex lock around board
         tile = b.getTile(self.tile)
         tile[1] = self.id
-        block.release()
+        block.release() #release mutex
 
         self.money -= 1000
         self.properties.append(tile[0]) # saves property id to player
@@ -100,28 +107,37 @@ class Player:
     # at the end of the game this method will look at the cards and calculate how much money was made
     def calculateMoney(self):
 
-        for prop in pSet:
+        for prop in pSet: # for each possible set
             fullSet = True
-            for tile in prop:
-                if tile in self.properties:
+            for tile in prop: # for each property owned
+                if tile in self.properties: # each property gets 1000
                     self.money += 1000
                     self.mProp += 1000
                 else: fullSet = False 
 
             if fullSet: 
-                if len(prop) == 2:
+                if len(prop) == 2: #full set of 2
                     self.money += 2000
                     self.mProp += 2000
-                if len(prop) == 3:
+                if len(prop) == 3: #full set of 3
                     self.money += 3000
                     self.mProp += 3000
-                elif len(prop) == 4:
+                elif len(prop) == 4: #full set of 4(rail)
                     self.money += 4000
                     self.mProp += 4000
 
+    #utility method to suspend the player
+    def wait(self, low, high, divider):
 
-    def wait(self, time):
-        time.sleep(time)
+        number = random.uniform(low,high)
+        wait = number/divider
+        wait = round(wait, 1)
+        # print(self.id, "is waiting", wait)
+
+
+        time.sleep(round(high/divider,1))
+
+        # time.sleep(wait)
 
 
     def playChance(self, players, player, b, report):
@@ -236,12 +252,12 @@ class Player:
                     propSet[1] = propSet[1] + ownedPropScore[1]
 
         print(propScore)
-        sortedScore = sorted(propScore, key = lambda x: x[1], reverse=True)
+        sortedScore = sorted(propScore, key = lambda x: x[1], reverse=True)#sorts by score
         print(sortedScore)
 
         sortedNoScore = []
         for prop, score in sortedScore:
-            sortedNoScore.append(prop)
+            sortedNoScore.append(prop) #list of only properties
 
         print(sortedNoScore)
 
