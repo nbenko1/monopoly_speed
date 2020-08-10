@@ -44,7 +44,6 @@ import pandas
     #less important
 #TODO add one more layer for the tie check
 #TODO which chest cards gave which money
-#TODO choose whether or not to use trade chance card
 
 #TODO check out the sheet
 
@@ -186,6 +185,8 @@ def gameSetup(players):
         player.money += 5000 # starts with 5000
         player.chance = chanceDeck.pullChanceCards()
         player.commChest = commDeck.pullChestCards()
+        for card in player.commChest:
+            player.commChestPayout.append([card[0],0])
    
 #runs the game as one long buying round - mainly for testing
 def noTradeGame(player):
@@ -402,7 +403,7 @@ def printCSV():
 ########################
 #    CHANGE HEADER     #
 ########################
-        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','path','Passed_go','Jail','Properties','Chest_Cards'])
+        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','path','Passed_go','Jail','Properties','Chest_Cards', "Chest Card Payout"])
 ########################
 
         for player in players:
@@ -413,7 +414,7 @@ def printCSV():
 ########################
 #    CHANGE DATA       #
 ########################
-            output.writerow([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID])
+            output.writerow([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout])
 ########################
 
         output.writerow(["",gameCount,"round" ,gameTime, "seceonds", quickTiming, "x speed"])
@@ -426,7 +427,7 @@ def printCSV():
     # return df
     details = []
     for player in players:
-        details.append([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID])
+        details.append([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout])
     return details
 
 def lezgo():

@@ -15,10 +15,10 @@ numberOfPlayers = 3
 startPosition = [0,0,0]
 
 #how long the game will go in seconds
-gameLength = 30.0
+gameLength = 20.0
 
 #number of games t0 play
-numberOfRounds = 9
+numberOfRounds = 1
 
 #real time print statements from the game
 printStatements = False
@@ -33,7 +33,7 @@ playerTypes = ["g","s","c"] #TODO long simulations should shuffle this to avoid 
 # if == 1.0 then it will play at normal speed
 # each wait command length is divided by this number
 # so == 2 is 2x normal speed, 3 is 3x and so on
-timeMultiplier = 1.0
+timeMultiplier = 3.0
 
 #timing charts
 #if False will default to regular game timings

@@ -98,9 +98,7 @@ class CommChestDeck:
         # print("distributing chest cards")
         return pullCards(self.Cards, 3)
 
-
     #calculate payout based on cards 
-    #THIS IS A HOT MESS but i think it works
 
     def payout(self, player, report):
         for card in player.commChest:
@@ -114,6 +112,7 @@ class CommChestDeck:
                 if meetsReq: 
                     player.money += 2000
                     player.mChest += 2000
+                    player.commChestPayout.append([card[0], card[3]])
                     if report: print("money + 2000 for partGroup")
 
             if card[2] == "group": # one in each
@@ -133,6 +132,7 @@ class CommChestDeck:
                 if fullSet: 
                     player.money += card[3]
                     player.mChest += card[3]
+                    player.commChestPayout.append([card[0], card[3]])
                     if report: print("money +", card[3], "for group")
 
             if card[2] == "set": #full set
@@ -145,6 +145,7 @@ class CommChestDeck:
                     if fullSet: 
                         player.money += card[3] 
                         player.mChest += card[3]
+                        player.commChestPayout.append([card[0], card[3]])
                         if report: print("money +", card[3], "for set")
                     
             if card[2] == "anySet":
@@ -156,6 +157,7 @@ class CommChestDeck:
                     if fullSet: 
                         player.money += card[3] 
                         player.mChest += card[3]
+                        player.commChestPayout.append([card[0], card[3]])
                         if report: print("money +", card[3], "for anySet")
 
             if card[2] == "rail":
@@ -165,6 +167,7 @@ class CommChestDeck:
                     if prop in player.properties: 
                         player.money += 1000
                         player.mChest += 1000
+                        player.commChestPayout.append([card[0], card[3]])
                         if report: print("money + 1000 for rail")
                     
 

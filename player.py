@@ -56,6 +56,7 @@ class Player:
         self.mProp = 0 #money from owning properties
         self.mChest = 0 #money from chest cards
         self.money = 0 # total combination of all money source  
+        self.commChestPayout = [] #tracks how much money each card earns
     
     def passGO(self, oldPos, newPos, report):
         if oldPos < 0 and newPos >= oldPos or oldPos < 16 and newPos >= 16:
