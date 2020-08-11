@@ -1,10 +1,10 @@
 #QUICK RUNDOWN
 # this file sets up a global board object and player objects for each game instance,
 # it then creates threads for each player and runs the game on the shared board
-# the individual player classes handle how long each action takes  --- (so far I only have the one)
-# but there is a global timer that controls how long the game lasts
+# the individual player classes handle how long each action takes
+# and there is a global timer that controls how long the game lasts
 
-#multiple games can be simulated in the automator.py file
+#run games form the automator.py file
 
 #custom classes
 import player
@@ -22,41 +22,45 @@ import sys #for atomic print commands
 import csv
 import pandas
 
+#-------------------------------------------------------------------------------------------------------------------
 # key for todos:
 # '-' started
 # '--' in progress
 # '---' being tested
 # '+' complete
 
+#-------------finished
 # + Add mutex lock around global board object
 # + chance card class
 # + community chest card class
 # + read in final csv
 # + support for different player types
 # + Add method in the player class that adds up all money at the end of the game - need cards first
+# + Print data to CSV at end of the game
+# + stats for each round - total at end
 
-#TODO -- Print data to CSV at end of the game
-    # need to save different files instead of writing over the same one
-#TODO --- stats for each round - total at end
+#------------main goals
+#TODO - Chance cards
 #TODO - with and without chance cards
-    #option trading round or optional chance cards
-#TODO - print board in a readable format
-    #less important
-#TODO add one more layer for the tie check
-#TODO which chest cards gave which money
+#TODO --- which chest cards gave which money
+#TODO test "findWantedProperty()"
 
+
+#-------------non code todos and figure outs
 #TODO check out the sheet
-
-
-#non code todos and figure outs
 #TODO get accurate timing for the player actions
     #the way it works right now is the payer finished their turn
     #even after the timer ends - the threads line back up but the rounds last longer than they should
     #I dont know how to fix this without a lot of added complexity - but it varies up to 6 seconds
         # add "playing" boolean thats checked during the buying method
-#TODO python logging class ?? i dont know what this is but it sounds promising
 #TODO right now it checks for time after the role, so a player can move to a space but not have time to buy it
 
+
+#-------------less important
+#TODO - print board in a readable format
+#TODO add one more layer for the tie check
+
+#-------------------------------------------------------------------------------------------------------------------
 
 
 block = threading.Lock() # mutex for the board
@@ -97,32 +101,33 @@ OfficialEndTime = 0.0
 #this method sets up and runs games depending on the input
 def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timing, buyStage = bs, tradeStage = ts):
     #jesus christ theres got to be a better way than this
-    global bs
+    global bs # array with lengths for each buying stage
     bs = buyStage
-    global ts
+    global ts # array of lengths for each trading stage
     ts = tradeStage
 
-    global quickTiming
+    global quickTiming # mutliplier for the wait command lengths
     quickTiming = timing
     
-    global chanceDeck
+    global chanceDeck # chance deck for this particular game 
     chanceDeck = cards.ChanceDeck()
-    global commDeck
+    global commDeck # communty chest deck for this game
     commDeck = cards.CommChestDeck()
-    global report
+    global report # boolean indicating whether to print real time game updates
     report = post
-    global gameCount
+    global gameCount # which game number this is
     gameCount = gameNumber
-    global b
+    global b # board object
     b = board.Board()
-    global players
+    global players # array of players
     players = []
-    global block 
+    global block  #mutex lock for the board object
     block = threading.Lock() # mutex for the board
-    global c_lock
+    global c_lock # mutex lock for the card decks
     c_lock = threading.Lock() # mutex for the card decks
 
-    for i in range(0,numPlayers):
+    #reads in array of player typles and creates each one
+    for i in range(0,numPlayers): 
         tempPlayer = player.Player(i)
         if types[i] == "c": #conservative player
             tempPlayer = consPlayer.ConsPlayer(i+1)
@@ -133,42 +138,60 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
         else: 
             print("bad player type input")
             return
-        tempPlayer.startingPos = startingPos[i]
-        players.append(tempPlayer)
+        tempPlayer.startingPos = startingPos[i] # sets staring position for each player
+        players.append(tempPlayer) # add to total list of players
 
     print("\nSTARTING GAME", gameCount)
     if not report:print("playing...")
 
     #give players money and cards
     gameSetup(players)
+
     #prints greeting
     if report:lezgo() 
 
+    # starts timers
     global curTime 
     curTime = time.time() 
-
     global endTime 
     endTime = curTime + length
     global startTime
     startTime = curTime
     global OfficialStartTime
     OfficialStartTime = curTime
-    global OfficialEndTime
+    
 
     #creates threads and plays game
     if trading: start()
     else: noTradeStart()
 
-    OfficialEndTime = time.time()
+    global OfficialEndTime
+    OfficialEndTime = time.time() # records end time
 
     #gives rewards at the end of the game
     payout(players)
+
     #prints the stats of the game
     if report: printStats()
+
     #saves stats to CSV
     stats = printCSV()
-    return stats #return dataframe
 
+    #return dataframe
+    return stats 
+
+
+
+def gameSetup(players):
+    #initialize player(s)
+    for player in players:
+        player.money += 5000 # starts with 5000
+        player.chance = chanceDeck.pullChanceCards()
+        for card in player.chance:
+            card[1] == 1 # set status of each card to unused
+        player.commChest = commDeck.pullChestCards()
+        for card in player.commChest:
+            player.commChestPayout.append([card[0],0])
 
 
 
@@ -179,14 +202,6 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
 
 
 
-def gameSetup(players):
-    #initialize player(s)
-    for player in players:
-        player.money += 5000 # starts with 5000
-        player.chance = chanceDeck.pullChanceCards()
-        player.commChest = commDeck.pullChestCards()
-        for card in player.commChest:
-            player.commChestPayout.append([card[0],0])
    
 #runs the game as one long buying round - mainly for testing
 def noTradeGame(player):
@@ -260,6 +275,12 @@ def buyRound(player, endTime):
 #upload to a global list - each player then
 def tradeRound(player):
     pass
+
+    # each player plays a card - one at a time
+    # for player in players:
+    #     block.acquire()
+    #     player.playChance(players,b, report)
+    #     block.release()
 
 
 
@@ -417,7 +438,7 @@ def printCSV():
             output.writerow([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout])
 ########################
 
-        output.writerow(["",gameCount,"round" ,gameTime, "seceonds", quickTiming, "x speed"])
+        output.writerow(["",gameCount,"round" ,gameTime, "seconds", quickTiming, "x speed"])
 
         strCount = str(gameCount)
         output.writerow([''])

@@ -113,5 +113,36 @@ class TestPlayer(unittest.TestCase):
         p.properties.extend([3,1,29])
         self.assertEqual(p.findLeastNeededCard(), 3)
 
+    def test_findWantedProperty(self):
+        # p1 = Player(1)
+        # p1.commChest.append([8, 1, "set", 3000, 1, orange])
+        # p1.commChest.append([2, 1, "group", 2000, 2, yellow, dblue])
+        # # p1.properties.extend([1,3,5,7,13,14,15])
+        # p1.properties.extend([1,2,3,4,5,6,7,9,10,11,12,13,14,18,19,20,21,22,23,25,26,27,28,29,30,31])
+        # p1.chance.append([1, 2, "keep", "take any unowned property"])
+
+        # p2 = Player(2)
+        # p2.commChest.append([4, 1, "set", 4000, 1, red])
+        # p2.properties.extend([6,17,21])
+        # p2.chance.append([1, 2, "keep", "take any unowned property"])
+        # players = [p1,p2]
+
+
+
+
+        # b = board.Board()
+
+        # for key, value in b.tiles.items(): #loops through dictionary
+        #     for place in value:
+        #         if place[0] in p1.properties:
+        #             place[1] = 1
+        #         if place[0] in p2.properties:
+        #             place[1] = 2
+
+        # b.print()
+
+        # p1.playChance(players, b, False)
+
+
 if __name__ == '__main__':
     unittest.main()

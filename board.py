@@ -17,7 +17,7 @@ class Board:
    
         "railroad"  : [[ 4, 0, "Reading Rail", 0], [12, 0, "Pennsylvania Rail", 0], [20, 0, "B. & O. Rail", 0], [28, 0, "Short Lane", 0]],
         "utilities" : [[ 2, 0, "Water Works", 0], [30, 0, "Electric Company", 0]],
-   
+
         #          0               1              2
         # [ Place on board | placeholder | placeholder ]
         "GO1"          : [[0, "GO 1", 0]],

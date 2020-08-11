@@ -7,6 +7,7 @@ import sys
 from operator import itemgetter
 
 import cards
+import board
 
 
 chance = cards.ChanceDeck()
@@ -133,34 +134,96 @@ class Player:
         number = random.uniform(low,high)
         wait = number/divider
         wait = round(wait, 1)
-        # print(self.id, "is waiting", wait)
+
+        time.sleep(wait) # random wait
+
+        # time.sleep(round(high/divider,1)) # static wait
 
 
-        time.sleep(round(high/divider,1))
 
-        # time.sleep(wait)
-
-
-    def playChance(self, players, player, b, report):
+    def playChance(self, players, b, report):
         card = random.choice(self.chance)
         while card[0] == 2: # cant draw the cancel card 
             card = random.choice(self.chance)
         
         print(card)
 
+        found = False
+
         if card[0] == 1: #take any unowned property
-            pass
+            # loop through wanted properties
+            wantedCards = self.findWantedProperty()
+            for prop in wantedCards: # looped through wanted properties in descending order
+                print("prop", prop)
+                tile = b.getTile(prop) # loops through each property on the board
+                print(tile)
+                if prop == tile[0] and tile[1] == 0: # if the properties match and it is available
+                    print("Player chose", prop, "from the board")
+                    self.properties.append(prop) #add property to player
+                    tile[1] = self.id # remove from board
+                    found = True
+                    break
+            if not found: print("player", self.id, "used card", card[0], "but there were no unowned properties")
+    
+
         if card[0] == 2: #cancel a chance card played against you
-            pass
+            pass # cannot be drawn
+
         if card[0] == 3: #swap with another player
             pass
+            # find least needed card
+            # swap with most wanted card from a different player
+                # loop through other players cards?
+
         if card[0] == 4: #steal from another player
             pass
-        if card[0] == 5: #return any property owned by another player to the board
-            pass
+            #loop through other players cards
 
+        if card[0] == 5: #return any property owned by another player to the board
+            
+            #find player with most money
+            mostMoney = -1
+            p0 = Player(-1)
+            p0.money = -999
+            chosenPlayer = p0
+            if len(players) >= 2: # makes sure theres more than one player
+                for player in players: # finds the player with the most money
+                    if player.money > mostMoney and player.id != self.id:
+                        print("checking player money", player.id)
+                        mostMoney = player.money 
+                        chosenPlayer = player
+            else: print("cannot player card due to lack of players")
+
+            if chosenPlayer == p0:
+                print("no player was chosen - BIG OOPS")
+            else:
+                #do nothing if the player has a cancel card
+                cancel = False
+                print("player", chosenPlayer.id, "was chosen")
+                for card in chosenPlayer.chance:
+                    if card[0] == 2 and card[1] == 1: # if the player has a cancel card
+                        card[1] == 0 # use it to block the card played against them
+                        print("the card was canceled")
+                        cancel = True
+                
+                #otherwise return their most valuable card to the board
+                if not cancel: # the card was not canceled
+                    wantedProperties = chosenPlayer.findWantedProperty()
+                    for prop in wantedProperties: # for each property
+                        if prop in chosenPlayer.properties: # if the player owns the property
+                            print("1")
+                            chosenPlayer.properties.remove(prop) # remove the property from the player 
+                            boardPlace = b.getTile(prop) # loop through each board tile
+                            boardPlace[1] = 0 # set status to unowned
+                            print("returning", prop, "to the board")
+                            break
+
+        card[1] == 0 # set card status to used
         self.chance.remove(card)
-        
+
+
+
+
     """
     needs some thought - more balance - god this is kicking my ass
     """
@@ -252,9 +315,9 @@ class Player:
                 if propSet[0] in ownedPropScore[0]:
                     propSet[1] = propSet[1] + ownedPropScore[1]
 
-        print(propScore)
+        # print(propScore)
         sortedScore = sorted(propScore, key = lambda x: x[1], reverse=True)#sorts by score
-        print(sortedScore)
+        # print(sortedScore)
 
         sortedNoScore = []
         for prop, score in sortedScore:
@@ -268,16 +331,41 @@ class Player:
 
         
 
-# in file testing
+
+# in-file testing
+
+p1 = Player(1)
+p1.commChest.append([8, 1, "set", 3000, 1, orange])
+p1.commChest.append([2, 1, "group", 2000, 2, yellow, dblue])
+p1.properties.extend([1,3,5,7,13,14,15])
+# p1.properties.extend([1,2,3,4,5,6,7,9,10,11,12,13,14,18,19,20,21,22,23,25,26,27,28,29,30,31])
+# p1.chance.append([1, 2, "keep", "take any unowned property"])
+p1.chance.append([5 ,5, "use", "choose any property owned by another player and immediately return it to the board"])
 
 
-# p = Player(1)
-# p.commChest.append([8, 1, "set", 3000, 1, orange])
-# p.commChest.append([2, 1, "group", 2000, 2, yellow, dblue])
-# p.properties.extend([1,3,5,7,13,14])
-# p.findWantedProperty()
+p2 = Player(2)
+p2.commChest.append([4, 1, "set", 4000, 1, red])
+p2.properties.extend([6,17,21])
+# p2.chance.append([1, 2, "keep", "take any unowned property"])
+p2.chance.append([5 ,5, "use", "choose any property owned by another player and immediately return it to the board"])
+players = [p1,p2]
 
+p2.money = 1
 
+b = board.Board()
+
+for key, value in b.tiles.items(): #loops through dictionary
+    for place in value:
+        if place[0] in p1.properties:
+            place[1] = 1
+        if place[0] in p2.properties:
+            place[1] = 2
+
+b.print()
+
+p1.playChance(players, b, False)
+
+b.print()
 
 # p = Player(1)
 # p.chance = chance.pullChanceCards()
