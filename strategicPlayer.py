@@ -16,7 +16,7 @@ class StrategicPlayer(player.Player):
         time.sleep(round(0.5/quickTiming,1))#---------------------------------------check cards for property
 
 
-        block.acquire()
+
         tile = b.getTile(self.tile)
         for card in self.commChest:
        
@@ -25,8 +25,7 @@ class StrategicPlayer(player.Player):
          
                 if tile[0] in propSet or self.money >= 2000: 
                     tile[1] = self.id
-               
-                    block.release()
+     
                    
                     self.wait(2.0, 2.5, quickTiming)
                     # time.sleep(random.randint(2,3)/quickTiming)#--------------------------buys property
@@ -36,4 +35,3 @@ class StrategicPlayer(player.Player):
                     self.properties.append(tile[0]) # saves property id to player
                     if report: sys.stdout.write("player " + str(self.id) + " bought " + str(self.tile)  + "\n")
                     return
-        block.release()

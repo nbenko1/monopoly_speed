@@ -17,15 +17,15 @@ startPosition = [0,0,0]
 #how long the game will go in seconds
 gameLength = 20.0
 
-#number of games t0 play
+#number of games to play
 numberOfRounds = 1
 
 #real time print statements from the game
-printStatements = False
+printStatements = True
 
 #True: separate buying and trading rounds
 #False: one long buying round
-trading = False
+trading = True
 
 #type of players
 playerTypes = ["g","s","c"] #TODO long simulations should shuffle this to avoid quirks
@@ -33,14 +33,14 @@ playerTypes = ["g","s","c"] #TODO long simulations should shuffle this to avoid 
 # if == 1.0 then it will play at normal speed
 # each wait command length is divided by this number
 # so == 2 is 2x normal speed, 3 is 3x and so on
-timeMultiplier = 3.0
+timeMultiplier = 2.0
 
 #timing charts
 #if False will default to regular game timings
 #"trading" must be True for this to come into effect
-customTimes = False #if this is true the round timing will be overriden with the following times
-buyStage = [3.0,2.0,2.0,1.0]
-tradeStage = [4.0,5.0,7.0,7.0]
+customTimes = True #if this is true the round timing will be overriden with the following times
+buyStage = [30.0,30.0,30.0,30.0]
+tradeStage = [10.0,10.0,10.0,10.0]
 
 
 

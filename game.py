@@ -65,6 +65,7 @@ import pandas
 
 block = threading.Lock() # mutex for the board
 c_lock = threading.Lock() # mutex for the card decks
+t_lock = threading.Lock() # mutex for the trading round
 
 #initialize game elements
 
@@ -80,8 +81,8 @@ curTime = time.time()
 endTime = curTime + gameLength
 startTime =curTime
 gameCount = 0
-bs = [30.0,2.0,2.0,1.0]
-ts = [2.0,2.0,2.0,2.0]
+bs = [30.0,20.0,20.0,10.0]
+ts = [40.0,50.0,70.0,70.0]
 player1 = player.Player("JIMMY")
 player2 = player.Player("THERESA")
 player1.startingPos = 0
@@ -142,7 +143,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
         players.append(tempPlayer) # add to total list of players
 
     print("\nSTARTING GAME", gameCount)
-    if not report:print("playing...")
+    if not report: print("playing...")
 
     #give players money and cards
     gameSetup(players)
@@ -190,8 +191,6 @@ def gameSetup(players):
         for card in player.chance:
             card[1] == 1 # set status of each card to unused
         player.commChest = commDeck.pullChestCards()
-        for card in player.commChest:
-            player.commChestPayout.append([card[0],0])
 
 
 
@@ -229,9 +228,9 @@ def buyStage(player, rEndTime):
 def tradeStage(player, rEndTime):
     curTime = time.time()
     startTime = curTime
-    while curTime <= rEndTime:
-        tradeRound(player)
-        curTime = time.time()
+    tradeRound(player)
+    # while curTime <= rEndTime: # uncomment this to have the trade round take the normal amount of time
+    #     curTime = time.time()
     print("P",player.id,"trading", curTime - startTime)
 
 #this handles each move the player makes - and any purchases made during that turn
@@ -260,6 +259,7 @@ def buyRound(player, endTime):
             if report: sys.stdout.write("player " + str(player.id) + " is visiting jail " + "\n")
 
     elif player.tile > 0 and player.tile < 32: #can purchase tile
+        block.acquire() #mutex lock around board
         purResult = b.purchase(player)
         if purResult == 2: # successful
             player.canPurchase(b, report, block, quickTiming)
@@ -267,20 +267,19 @@ def buyRound(player, endTime):
             if report: sys.stdout.write("player " + str(player.id) + " does not have enough money to buy " + str(player.tile)  + "\n")
         else:
             if report: sys.stdout.write("property " + str(player.tile) +  " already owned "  + "\n")
+        block.release() #release mutex
     else: print("something went very wrong -> player jumped the board") 
 
 
-
-#this will handle the trading round but dear god is it daunting
-#upload to a global list - each player then
+#upload to a global list - each player
 def tradeRound(player):
-    pass
+    global t_lock
+    sys.stdout.write("ENTERING TRADING STAGE" + "\n")
 
     # each player plays a card - one at a time
-    # for player in players:
-    #     block.acquire()
-    #     player.playChance(players,b, report)
-    #     block.release()
+    t_lock.acquire()
+    player.playChance(players,b, report)
+    t_lock.release()
 
 
 
@@ -299,8 +298,10 @@ def noTradeStart():
 #this runs a game alternating between buying and trading rounds
 def start():
     global curTime
+    global b
 
-    for r in range(4):
+    for r in range(1,4):
+       
         print("Starting Round", r)
         threads = list()
         for player in players: #creates a thread for each player
@@ -320,13 +321,16 @@ def start():
         for player in players: #creates a thread for each player
             # if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
             endTime = curTime + ts[r]
+          
             playerThread = threading.Thread(target=tradeStage, args=(player,endTime))
+            
             threads.append(playerThread) #adds to list
         for playerThread in threads: #starts each thread
             playerThread.start() #starts each player
         for index, thread in enumerate(threads): #waits for each thread to end before moving forward
             thread.join() #shouldn't be necessary but here just in case
         print("")
+        if report: b.print()
         curTime = time.time()
 
 

@@ -4,6 +4,9 @@ class Board:
     def __init__(self):
         self.tiles = { # i may need to rework this to make printing it out easier
 
+        # this setup sucks but I'm do deep change it now
+        # just use the getTile() method for all your board needs
+
         #          0                  1                2          3
         # [ Place on board | Owner? (ID of player) | frequency | placeholder ]
         "brown"     : [[ 1, 0, "Mediterranean Ave", 0], [ 3, 0, "Baltic Ave", 0]],

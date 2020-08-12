@@ -97,10 +97,10 @@ class Player:
         # time.sleep(random.uniform(2.0,2.5)/quickTiming)   #--------------------------------------- time to purchase
         
 
-        block.acquire() #mutex lock around board
+      
         tile = b.getTile(self.tile)
         tile[1] = self.id
-        block.release() #release mutex
+        
 
         self.money -= 1000
         self.properties.append(tile[0]) # saves property id to player
@@ -132,6 +132,7 @@ class Player:
     def wait(self, low, high, divider):
 
         number = random.uniform(low,high)
+        number = round(number, 2)
         wait = number/divider
         wait = round(wait, 1)
 
@@ -142,84 +143,144 @@ class Player:
 
 
     def playChance(self, players, b, report):
+        time.sleep(1)
         card = random.choice(self.chance)
         while card[0] == 2: # cant draw the cancel card 
             card = random.choice(self.chance)
         
-        print(card)
+        card[1] == 0 # set card status to used
+        self.chance.remove(card)
+
+        if report: print("\n", "          beginning trading round for player", self.id)
+        if report: print("playing card", card)
 
         found = False
-
         if card[0] == 1: #take any unowned property
             # loop through wanted properties
+            if report: print("starting card 1 process - take an unowned property")
             wantedCards = self.findWantedProperty()
             for prop in wantedCards: # looped through wanted properties in descending order
-                print("prop", prop)
+
                 tile = b.getTile(prop) # loops through each property on the board
-                print(tile)
+
                 if prop == tile[0] and tile[1] == 0: # if the properties match and it is available
-                    print("Player chose", prop, "from the board")
+                    if report: print("Player", self.id, "chose", prop, "from the board")
                     self.properties.append(prop) #add property to player
                     tile[1] = self.id # remove from board
                     found = True
                     break
-            if not found: print("player", self.id, "used card", card[0], "but there were no unowned properties")
+            if not found and report: print("player", self.id, "used card", card[0], "but there were no unowned properties")
     
 
         if card[0] == 2: #cancel a chance card played against you
             pass # cannot be drawn
 
         if card[0] == 3: #swap with another player
-            pass
-            # find least needed card
-            # swap with most wanted card from a different player
-                # loop through other players cards?
+            if report: print("starting card 3 process - swap with another player")
+            mostWanted = self.findWantedProperty()
+            leastWanted = self.findLeastNeededProp()
+
+            if leastWanted == -1: 
+                if report: print("player", self.id, "was no properties to trade")
+                return
+
+            #TODO move this to method???
+            for prop in self.properties: # removes all properties that are already owned
+                if prop in mostWanted:
+                    mostWanted.remove(prop)
+
+            if report: print("least wanted card is", leastWanted)
+            if report: print("most wanted is", mostWanted)
+
+            for prop in mostWanted:
+                for player in players:
+                    if prop in player.properties and player.id != self.id:
+                        if report: print("player", self.id, "is swapping", leastWanted, "for player", player.id, prop)
+                        #checks if the player has a cancel card
+                        for card in player.chance:
+                            if card[0] == 2 and card[1] == 1: # if the player has a cancel card
+                                card[1] == 0 # use it to block the card played against them
+                                if report: print("the card was cancelled!")
+                                return
+
+                        #give self wanted property
+                        player.properties.remove(prop) # remove from player
+                        self.properties.append(prop) # give to self
+                        b.getTile(prop)[1] = self.id # change owner on the board
+        
+                        #give player least wanted
+                        self.properties.remove(leastWanted) # remove from player
+                        player.properties.append(leastWanted) # give to self
+                        b.getTile(leastWanted)[1] = player.id # change owner on the board
+                        return
+            
+            if report: print("player", self.id, "looked for a card but couldn't find one")
 
         if card[0] == 4: #steal from another player
-            pass
-            #loop through other players cards
+            if report: print("starting card 4 process - steal from another player")
+            mostWanted = self.findWantedProperty()
 
+            for prop in mostWanted:
+                for player in players:
+                    if prop in player.properties and player.id != self.id:
+                        if report: print("player", self.id, "is stealing property", prop, "from", player.id)
+
+                        for card in player.chance:
+                            if card[0] == 2 and card[1] == 1: # if the player has a cancel card
+                                card[1] == 0 # use it to block the card played against them
+                                if report: print("the card was canceled")
+                                return
+                        if report: print(prop, "was stolen")
+                        #give self wanted property
+                        player.properties.remove(prop) # remove from player
+                        self.properties.append(prop) # give to self
+                        b.getTile(prop)[1] = self.id # change owner on the board
+                        return
+
+            if report: print("player", self.id, "couln't find a card i steal")
+    
         if card[0] == 5: #return any property owned by another player to the board
-            
+            if report: print("starting card 5 process - return prop from another player")
             #find player with most money
-            mostMoney = -1
+            propCount = -1
             p0 = Player(-1)
-            p0.money = -999
             chosenPlayer = p0
             if len(players) >= 2: # makes sure theres more than one player
-                for player in players: # finds the player with the most money
-                    if player.money > mostMoney and player.id != self.id:
-                        print("checking player money", player.id)
-                        mostMoney = player.money 
+                for player in players: # finds the player with the most properties
+                    if len(player.properties) > propCount:
+                        print("checking player", player.id, "money")
+                        propCount = len(player.properties)
                         chosenPlayer = player
-            else: print("cannot player card due to lack of players")
+            else: 
+                if report: print("Not enough players to choose from")
+                return
 
             if chosenPlayer == p0:
-                print("no player was chosen - BIG OOPS")
+                if report: print("no players had any properties")
             else:
                 #do nothing if the player has a cancel card
                 cancel = False
-                print("player", chosenPlayer.id, "was chosen")
+                if report: print("player", chosenPlayer.id, "was chosen")
                 for card in chosenPlayer.chance:
                     if card[0] == 2 and card[1] == 1: # if the player has a cancel card
                         card[1] == 0 # use it to block the card played against them
-                        print("the card was canceled")
+                        if report: print("the card was canceled")
                         cancel = True
                 
                 #otherwise return their most valuable card to the board
                 if not cancel: # the card was not canceled
                     wantedProperties = chosenPlayer.findWantedProperty()
+
                     for prop in wantedProperties: # for each property
                         if prop in chosenPlayer.properties: # if the player owns the property
-                            print("1")
+                 
                             chosenPlayer.properties.remove(prop) # remove the property from the player 
                             boardPlace = b.getTile(prop) # loop through each board tile
                             boardPlace[1] = 0 # set status to unowned
-                            print("returning", prop, "to the board")
+                            if report: print("returning", prop, "to the board")
                             break
 
-        card[1] == 0 # set card status to used
-        self.chance.remove(card)
+
 
 
 
@@ -232,7 +293,7 @@ class Player:
     #need to TEST THE HELL out of this method
     #returns -1 if no properties
     #TODO fix group card scoring - mostly done, might be worth a another look
-    def findLeastNeededCard(self):
+    def findLeastNeededProp(self):
         scoreProp = [] # this will keep track of each property and the score
         for i in range(len(self.properties)):
             #[propID, score]
@@ -245,7 +306,7 @@ class Player:
                         if card == [2, 1, "group", 2000, 2, yellow, dblue]:
                             scoreProp[j][1] = scoreProp[j][1] + 2 #group card gets extra boost
         
-        print("after card", scoreProp)
+        # print("after card", scoreProp)
 
         # print(scoreProp)
         countSets = []
@@ -276,7 +337,7 @@ class Player:
                 worstPropScore = prop[1]
                 worstProp = prop[0]
 
-        print("after sets", scoreProp, "\n")
+        # print("after sets", scoreProp, "\n")
 
         return worstProp
 
@@ -323,7 +384,7 @@ class Player:
         for prop, score in sortedScore:
             sortedNoScore.append(prop) #list of only properties
 
-        print(sortedNoScore)
+        # print(sortedNoScore)
 
         #return sorted list of all possible propreties from best to worst
         return sortedNoScore
@@ -334,38 +395,38 @@ class Player:
 
 # in-file testing
 
-p1 = Player(1)
-p1.commChest.append([8, 1, "set", 3000, 1, orange])
-p1.commChest.append([2, 1, "group", 2000, 2, yellow, dblue])
-p1.properties.extend([1,3,5,7,13,14,15])
-# p1.properties.extend([1,2,3,4,5,6,7,9,10,11,12,13,14,18,19,20,21,22,23,25,26,27,28,29,30,31])
-# p1.chance.append([1, 2, "keep", "take any unowned property"])
-p1.chance.append([5 ,5, "use", "choose any property owned by another player and immediately return it to the board"])
+# p1 = Player(1)
+# p1.commChest.append([8, 1, "set", 3000, 1, orange])
+# p1.commChest.append([2, 1, "group", 2000, 2, yellow, dblue])
+# p1.properties.extend([1,3,5,7,13,14,15])
+# # p1.properties.extend([1,2,3,4,5,6,7,9,10,11,12,13,14,18,19,20,21,22,23,25,26,27,28,29,30,31])
+# # p1.chance.append([1, 2, "keep", "take any unowned property"])
+# p1.chance.append([5 ,5, "use", "choose any property owned by another player and immediately return it to the board"])
 
 
-p2 = Player(2)
-p2.commChest.append([4, 1, "set", 4000, 1, red])
-p2.properties.extend([6,17,21])
-# p2.chance.append([1, 2, "keep", "take any unowned property"])
-p2.chance.append([5 ,5, "use", "choose any property owned by another player and immediately return it to the board"])
-players = [p1,p2]
+# p2 = Player(2)
+# p2.commChest.append([4, 1, "set", 4000, 1, red])
+# p2.properties.extend([6,17,21])
+# # p2.chance.append([1, 2, "keep", "take any unowned property"])
+# p2.chance.append([5 ,5, "use", "choose any property owned by another player and immediately return it to the board"])
+# players = [p1,p2]
 
-p2.money = 1
+# p2.money = 1
 
-b = board.Board()
+# b = board.Board()
 
-for key, value in b.tiles.items(): #loops through dictionary
-    for place in value:
-        if place[0] in p1.properties:
-            place[1] = 1
-        if place[0] in p2.properties:
-            place[1] = 2
+# for key, value in b.tiles.items(): #loops through dictionary
+#     for place in value:
+#         if place[0] in p1.properties:
+#             place[1] = 1
+#         if place[0] in p2.properties:
+#             place[1] = 2
 
-b.print()
+# b.print()
 
-p1.playChance(players, b, False)
+# p1.playChance(players, b, False)
 
-b.print()
+# b.print()
 
 # p = Player(1)
 # p.chance = chance.pullChanceCards()
@@ -380,7 +441,7 @@ b.print()
 # p.properties.append(9)
 # p.properties.append(15)
 # p.properties.append(14)
-# print(p.findLeastNeededCard())
+# print(p.findLeastNeededProp())
 
 # p.properties.append(9)
 # p.properties.append(10)
