@@ -36,6 +36,7 @@ class Player:
         self.id = player_id
         self.tile = 0 #current location
         self.winner = False
+        self.totalWaitTime = 0.0
 
         #game progress
         self.properties = [] #what properties are owned
@@ -60,20 +61,21 @@ class Player:
         self.commChestPayout = [] #tracks how much money each card earns
     
     def passGO(self, oldPos, newPos, report):
-        if oldPos < 0 and newPos >= oldPos or oldPos < 16 and newPos >= 16:
+        if newPos >= 32 or oldPos < 16 and newPos >= 16:
             self.timesPassedGo += 1
             self.money += 1000
             self.mGo += 1000
             if report: sys.stdout.write("player " + str(self.id) + " passed GO and received 1000 dollars" + "\n")
 
     #moves player, adds money if passed go
-    def move(self, report, quickTiming):
+    def move(self, report, quickTiming, randomTime):
         role = random.randint(1,6) 
 
-        self.wait(1.8, 2.3, quickTiming)
-        # time.sleep(random.uniform(1.8,2.3)/quickTiming) #--------------------------------------- time to move
-        # time.sleep(random.randint(1,2)/quickTiming) #--------------------------------------- time to move
+        if report: 
+            if self.type != "conservative":sys.stdout.write("player " + str(self.id) + " is moving to " + str((self.tile+role)%32) + "\n")
+            else: sys.stdout.write("player " + str(self.id) + " is moving to " + str((self.tile+role)%32) + " and is speeding along" "\n")
 
+        self.wait(1.8, 2.3, quickTiming,randomTime)#---------------------------------------
 
         self.roles.append(role) # adds role to records
         
@@ -89,14 +91,9 @@ class Player:
     
 
     #when the player lands on a property this method handles whether or not to buy it
-    def canPurchase(self, b, report, block, quickTiming):
+    def canPurchase(self, b, report, block, quickTiming, randomTime):
        
-        time.sleep(random.randint(2,3)/quickTiming)   #--------------------------------------- time to purchase
-
-
-        # time.sleep(random.uniform(2.0,2.5)/quickTiming)   #--------------------------------------- time to purchase
         
-
       
         tile = b.getTile(self.tile)
         tile[1] = self.id
@@ -104,7 +101,17 @@ class Player:
 
         self.money -= 1000
         self.properties.append(tile[0]) # saves property id to player
+
+
+
         if report: sys.stdout.write("player " + str(self.id) + " bought " + str(self.tile)  + "\n") #TODO move to player
+        
+        block.release()
+        # sys.stdout.write("--player " + str(self.id) + " released block " + "\n")
+
+
+        self.wait(2,3,quickTiming,randomTime)
+        
 
     # at the end of the game this method will look at the cards and calculate how much money was made
     def calculateMoney(self):
@@ -129,31 +136,39 @@ class Player:
                     self.mProp += 4000
 
     #utility method to suspend the player
-    def wait(self, low, high, divider):
+    def wait(self, low, high, quickTiming, randomTime):
+        # print("low", low, "high", high)
+        # print("random?", randomTime)
+        wait = 0
+        if randomTime:
+            randNumber = random.uniform(low,high) # randomized the number a bit
+            number = round(randNumber, 2) # rounds it to avoid overflow
+            wait = round(number/quickTiming, 2) # same
+            time.sleep(wait) # random wait
+        else:
+            wait = round(high/quickTiming, 2)
+            time.sleep(wait) # static wait
 
-        number = random.uniform(low,high)
-        number = round(number, 2)
-        wait = number/divider
-        wait = round(wait, 1)
 
-        time.sleep(wait) # random wait
-
-        # time.sleep(round(high/divider,1)) # static wait
-
+        self.totalWaitTime = self.totalWaitTime + wait
 
 
     def playChance(self, players, b, report):
         time.sleep(1)
+
+
         card = random.choice(self.chance)
-        while card[0] == 2: # cant draw the cancel card 
+        if len(self.chance) == 1 and self.chance[0][0] == 2:
+            print("no playable cards")
+            return
+        while card[0] == 2:
             card = random.choice(self.chance)
-        
-        card[1] == 0 # set card status to used
+
         self.chance.remove(card)
-
-        if report: print("\n", "          beginning trading round for player", self.id)
+ 
+        if report: print("\n", "  ----beginning trading round for player", self.id)
         if report: print("playing card", card)
-
+  
         found = False
         if card[0] == 1: #take any unowned property
             # loop through wanted properties
@@ -173,6 +188,7 @@ class Player:
     
 
         if card[0] == 2: #cancel a chance card played against you
+            print("shouldn't be here")
             pass # cannot be drawn
 
         if card[0] == 3: #swap with another player
@@ -181,7 +197,7 @@ class Player:
             leastWanted = self.findLeastNeededProp()
 
             if leastWanted == -1: 
-                if report: print("player", self.id, "was no properties to trade")
+                if report: print("player", self.id, "has no properties to trade")
                 return
 
             #TODO move this to method???
@@ -195,11 +211,11 @@ class Player:
             for prop in mostWanted:
                 for player in players:
                     if prop in player.properties and player.id != self.id:
-                        if report: print("player", self.id, "is swapping", leastWanted, "for player", player.id, prop)
+                        if report: print("player", self.id, "is swapping", leastWanted, "for", prop, "from", player.id)
                         #checks if the player has a cancel card
                         for card in player.chance:
-                            if card[0] == 2 and card[1] == 1: # if the player has a cancel card
-                                card[1] == 0 # use it to block the card played against them
+                            if card[0] == 2: # if the player has a cancel card
+                                player.chance.remove(card)
                                 if report: print("the card was cancelled!")
                                 return
 
@@ -226,8 +242,8 @@ class Player:
                         if report: print("player", self.id, "is stealing property", prop, "from", player.id)
 
                         for card in player.chance:
-                            if card[0] == 2 and card[1] == 1: # if the player has a cancel card
-                                card[1] == 0 # use it to block the card played against them
+                            if card[0] == 2: # if the player has a cancel card
+                                player.chance.remove(card)
                                 if report: print("the card was canceled")
                                 return
                         if report: print(prop, "was stolen")
@@ -237,7 +253,7 @@ class Player:
                         b.getTile(prop)[1] = self.id # change owner on the board
                         return
 
-            if report: print("player", self.id, "couln't find a card i steal")
+            if report: print("player", self.id, "couln't find a card to steal")
     
         if card[0] == 5: #return any property owned by another player to the board
             if report: print("starting card 5 process - return prop from another player")
@@ -248,7 +264,6 @@ class Player:
             if len(players) >= 2: # makes sure theres more than one player
                 for player in players: # finds the player with the most properties
                     if len(player.properties) > propCount:
-                        print("checking player", player.id, "money")
                         propCount = len(player.properties)
                         chosenPlayer = player
             else: 
@@ -263,7 +278,7 @@ class Player:
                 if report: print("player", chosenPlayer.id, "was chosen")
                 for card in chosenPlayer.chance:
                     if card[0] == 2 and card[1] == 1: # if the player has a cancel card
-                        card[1] == 0 # use it to block the card played against them
+                        player.chance.remove(card)
                         if report: print("the card was canceled")
                         cancel = True
                 

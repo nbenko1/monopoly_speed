@@ -2,6 +2,9 @@ import game
 import pandas
 import os
 from collections import Counter
+
+# THIS IS WHERE YOU WANT TO BE
+
 """
 inputs(number of players, starting position, length of the game, number of rounds, print statements, player types, (length of buy stages), (length of trade stages))
 """
@@ -15,10 +18,10 @@ numberOfPlayers = 3
 startPosition = [0,0,0]
 
 #how long the game will go in seconds
-gameLength = 20.0
+gameLength = 45.0
 
 #number of games to play
-numberOfRounds = 1
+numberOfRounds = 4
 
 #real time print statements from the game
 printStatements = True
@@ -35,14 +38,20 @@ playerTypes = ["g","s","c"] #TODO long simulations should shuffle this to avoid 
 # so == 2 is 2x normal speed, 3 is 3x and so on
 timeMultiplier = 2.0
 
+# if True, some randomness will be implemented into the timings
+# if False, each action will take the same amount of time each instance
+randomTime = False
+
 #timing charts
 #if False will default to regular game timings
 #"trading" must be True for this to come into effect
-customTimes = True #if this is true the round timing will be overriden with the following times
-buyStage = [30.0,30.0,30.0,30.0]
-tradeStage = [10.0,10.0,10.0,10.0]
+customTimes = False #if this is true the round timing will be overriden with the following times
+# buyStage = [30.0,30.0,30.0,30.0]
+# tradeStage = [4.0,4.0,4.0,4.0]
 
-
+#defaults
+buyStage = [30.0,20.0,20.0,10.0]
+tradeStage = [40.0,50.0,70.0,70.0] # this is currently ignored - once each card is played the game moves on
 
 #---------------------------------------------#
 
@@ -57,23 +66,45 @@ conservativePath = [] #^^^ for cons
 
 
 # gameLength = gameLength/quickTiming # speeds up game
-quickTiming = timeMultiplier
+
+# if quickTiming != 1.0: 
+#     gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
+#     if trading:
+#         for time in buyStage:
+#             time = time/quickTiming
+
 for gameNumber in range(1,numberOfRounds+1):
 
-    # for time structure testing
+    buyStage = [30.0,20.0,20.0,10.0]
+    tradeStage = [40.0,50.0,70.0,70.0]
+    quickTiming = timeMultiplier
     
-    # gameLength = 60
-    # if gameNumber <= 3: 
-    #     quickTiming = 1.0
-    # elif gameNumber >= 4 and gameNumber <= 6:
-    #     quickTiming = 3.0
-    # elif gameNumber >= 7 and gameNumber <= 9: 
-    #     quickTiming = 5.0
+    # if gameNumber > 2:
+    randomTime = False
 
-    if quickTiming != 1.0: gameLength = gameLength/quickTiming + quickTiming*0.425 # adjusts for time drift
+    # for time structure testing
+    if gameNumber % 2== 0:
+        randomTime = True
 
-    if customTimes: details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming, buyStage, tradeStage)
-    else: details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming)
+    # gameLength = 180
+    if gameNumber <= 2: 
+        quickTiming = 1.0
+    elif gameNumber >= 3 and gameNumber <= 4:
+        quickTiming = 2.0
+    # elif gameNumber >= 5: 
+    #     quickTiming = 4.0
+    if quickTiming != 1.0: 
+        gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
+        if trading:
+            for i in range(len(buyStage)):
+                buyStage[i] = round(buyStage[i]/quickTiming,2)
+
+
+    # if quickTiming != 1.0: gameLength = round(gameLength/quickTiming,2) # adjusts for time drift
+
+    # print("game", gameNumber, "length", gameLength)
+
+    details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming, randomTime, buyStage, tradeStage)
     df = pandas.read_csv('output.csv', index_col='ID') # creates a dataframe by reading the output from the previous game
     frames.append(df)
 

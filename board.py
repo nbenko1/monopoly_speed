@@ -61,6 +61,7 @@ class Board:
             if i not in self.exclude:
                 # print("ID: ",self.getTile(i)[0],"Owner:",self.getTile(i)[1])
                 print(self.getTile(i))
+        print("")
 
     # looks through what the player needs and returns the best card from the board
     # def bestPropForPlayer(self, player):

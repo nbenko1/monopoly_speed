@@ -40,10 +40,10 @@ import pandas
 # + stats for each round - total at end
 
 #------------main goals
-#TODO - Chance cards
+#TODO --- Chance cards
 #TODO - with and without chance cards
 #TODO --- which chest cards gave which money
-#TODO test "findWantedProperty()"
+#TODO - test "findWantedProperty()"
 
 
 #-------------non code todos and figure outs
@@ -58,7 +58,7 @@ import pandas
 
 #-------------less important
 #TODO - print board in a readable format
-#TODO add one more layer for the tie check
+#TODO add one more layer to the tie check
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ t_lock = threading.Lock() # mutex for the trading round
 
 #initialize game elements
 
-#CONTROL BOARD BABY - these are overridden by the run() method
+#TESTING CONTROL BOARD - these are overridden by the run() method
 b = board.Board()
 rounds = 10 #for testing
 players = []
@@ -82,14 +82,15 @@ endTime = curTime + gameLength
 startTime =curTime
 gameCount = 0
 bs = [30.0,20.0,20.0,10.0]
-ts = [40.0,50.0,70.0,70.0]
+# ts = [40.0,50.0,70.0,70.0]
+ts = [5.0,5.0,5.0,5.0]
 player1 = player.Player("JIMMY")
 player2 = player.Player("THERESA")
 player1.startingPos = 0
 player2.startingPos = 0
 players.append(player1)
 players.append(player2)
-
+randomTime = False
 quickTiming = 1.0
 OfficialStartTime = 0.0
 OfficialEndTime = 0.0
@@ -100,8 +101,8 @@ OfficialEndTime = 0.0
 ####################################################################################################################
 """
 #this method sets up and runs games depending on the input
-def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timing, buyStage = bs, tradeStage = ts):
-    #jesus christ theres got to be a better way than this
+def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timing, randomFactor, buyStage, tradeStage):
+
     global bs # array with lengths for each buying stage
     bs = buyStage
     global ts # array of lengths for each trading stage
@@ -109,6 +110,8 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
 
     global quickTiming # mutliplier for the wait command lengths
     quickTiming = timing
+    global randomTime
+    randomTime = randomFactor
     
     global chanceDeck # chance deck for this particular game 
     chanceDeck = cards.ChanceDeck()
@@ -116,7 +119,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
     commDeck = cards.CommChestDeck()
     global report # boolean indicating whether to print real time game updates
     report = post
-    global gameCount # which game number this is
+    global gameCount # current game number
     gameCount = gameNumber
     global b # board object
     b = board.Board()
@@ -127,7 +130,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
     global c_lock # mutex lock for the card decks
     c_lock = threading.Lock() # mutex for the card decks
 
-    #reads in array of player typles and creates each one
+    #reads in array of player types and creates each one
     for i in range(0,numPlayers): 
         tempPlayer = player.Player(i)
         if types[i] == "c": #conservative player
@@ -194,6 +197,7 @@ def gameSetup(players):
 
 
 
+
 ################
 # GAME METHODS #
 ################
@@ -222,7 +226,7 @@ def buyStage(player, rEndTime):
     while curTime <= rEndTime:
         buyRound(player,rEndTime)
         curTime = time.time()
-    print("P",player.id,"buying", curTime - startTime)
+    # print("P",player.id,"buying", curTime - startTime)
 
 #runs the trading stage for a player for a certain amount of time
 def tradeStage(player, rEndTime):
@@ -231,22 +235,19 @@ def tradeStage(player, rEndTime):
     tradeRound(player)
     # while curTime <= rEndTime: # uncomment this to have the trade round take the normal amount of time
     #     curTime = time.time()
-    print("P",player.id,"trading", curTime - startTime)
+    # print("P",player.id,"trading", curTime - startTime)
 
 #this handles each move the player makes - and any purchases made during that turn
 def buyRound(player, endTime):
     global quickTiming
-    player.move(report, quickTiming)
+    global randomTime
+    player.move(report, quickTiming, randomTime)
     if time.time() >= endTime: return # checks for time after the move - so right now the player can land on a space but not have time to buy it
-    if report: 
-        if player.type != "conservative":sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + "\n")
-        else: sys.stdout.write("player " + str(player.id) + " moved to " + str(player.tile) + " but is speeding along" "\n")
+
     #tile action phase
     if player.tile == 24: #on go to jail 
         
-        player.wait(0.5, 0.8, quickTiming)
-        # time.sleep(random.randint(1,2)/quickTiming) #----------------------------------------------------------------------------------------going to jail penalty
-        # time.sleep(random.uniform(0.5,0.8)/quickTiming) #----------------------------------------------------------------------------------------going to jail penalty
+        player.wait(0.5, 0.8, quickTiming,randomTime)#-----------------------------------------------------------------------------
 
         player.tile = 8 #reset player position to jail
         player.path.append(8)
@@ -259,27 +260,40 @@ def buyRound(player, endTime):
             if report: sys.stdout.write("player " + str(player.id) + " is visiting jail " + "\n")
 
     elif player.tile > 0 and player.tile < 32: #can purchase tile
+        # sys.stdout.write("--player " + str(player.id) + " trying to acquire block " + "\n")
         block.acquire() #mutex lock around board
+        # sys.stdout.write("--player " + str(player.id) + " got block " + "\n")
+    
         purResult = b.purchase(player)
         if purResult == 2: # successful
-            player.canPurchase(b, report, block, quickTiming)
+            player.canPurchase(b, report, block, quickTiming, randomTime)
         elif purResult == 0: # not enough money
             if report: sys.stdout.write("player " + str(player.id) + " does not have enough money to buy " + str(player.tile)  + "\n")
+            block.release() #release mutex
+            # sys.stdout.write("--player " + str(player.id) + " released block " + "\n")
         else:
             if report: sys.stdout.write("property " + str(player.tile) +  " already owned "  + "\n")
-        block.release() #release mutex
+            block.release() #release mutex
+            # sys.stdout.write("--player " + str(player.id) + " released block " + "\n")
+        
+        
     else: print("something went very wrong -> player jumped the board") 
 
 
 #upload to a global list - each player
 def tradeRound(player):
     global t_lock
-    sys.stdout.write("ENTERING TRADING STAGE" + "\n")
+    sys.stdout.write("\n" + "ENTERING TRADING STAGE" + "\n")
 
     # each player plays a card - one at a time
+    sys.stdout.write("player " + str(player.id) + " is requesting t_lock" +"\n")
     t_lock.acquire()
+    sys.stdout.write("player " + str(player.id) + " got it" +"\n")
+
     player.playChance(players,b, report)
+
     t_lock.release()
+    sys.stdout.write("player " + str(player.id) + " released it" +"\n")
 
 
 
@@ -287,7 +301,7 @@ def tradeRound(player):
 def noTradeStart():
     threads = list()
     for player in players: #creates a thread for each player
-        if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
+        if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id) + " type: " + str(player.type) + '\n' + '\n')
         playerThread = threading.Thread(target=noTradeGame, args=(player,))
         threads.append(playerThread) #adds to list
     for playerThread in threads: #starts each thread
@@ -302,7 +316,7 @@ def start():
 
     for r in range(1,4):
        
-        print("Starting Round", r)
+        print("Starting Buying Round", r)
         threads = list()
         for player in players: #creates a thread for each player
             # if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
@@ -315,7 +329,7 @@ def start():
             thread.join() #shouldn't be necessary but here just in case
 
         threads.clear()
-
+        print("Starting Trading Round", r)
         curTime = time.time()
 
         for player in players: #creates a thread for each player
@@ -337,6 +351,7 @@ def start():
 
 
 
+
 ###############################
 # POST GAME AND PRINT METHODS #
 ###############################
@@ -350,7 +365,7 @@ def start():
 #gives players money at the end of the game for community chest and properties
 #also determines the winner
 def payout(players):
-    report = False #for testing
+    # report = False #for testing
     if report: print("--------------------------\n          PAYOUT       \n--------------------------")
     winningAmount = 0
     winners = []
@@ -411,6 +426,7 @@ def printStats():
         print("Properties:", player.properties)
         
     b.print()
+    print("")
 
 
 
@@ -428,9 +444,11 @@ def printCSV():
 ########################
 #    CHANGE HEADER     #
 ########################
-        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','path','Passed_go','Jail','Properties','Chest_Cards', "Chest Card Payout"])
+        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','path','Passed_go','Jail','Properties','Chest_Cards', "Chest Card Payout", "Total Wait"])
 ########################
 
+        output.writerow([''])
+        output.writerow(["","round", str(gameCount) ,gameTime, "seconds", quickTiming, "x speed", "randomized time:", randomTime])
         for player in players:
             playerChestCardsID = []
             for i in range(len(player.commChest)):
@@ -439,10 +457,11 @@ def printCSV():
 ########################
 #    CHANGE DATA       #
 ########################
-            output.writerow([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout])
+            output.writerow([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout,player.totalWaitTime])
 ########################
 
-        output.writerow(["",gameCount,"round" ,gameTime, "seconds", quickTiming, "x speed"])
+        
+
 
         strCount = str(gameCount)
         output.writerow([''])
@@ -452,7 +471,7 @@ def printCSV():
     # return df
     details = []
     for player in players:
-        details.append([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout])
+        details.append([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout,player.totalWaitTime])
     return details
 
 def lezgo():

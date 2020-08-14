@@ -11,7 +11,7 @@ class ConsPlayer(player.Player):
         super().__init__(player_id)
         self.type = "conservative"
 
-    def canPurchase(self, b,report,block, quickTiming):
-        self.wait(0.2, 0.3, quickTiming)
-        # time.sleep(0.2/quickTiming) #-----------------------lag between roles
-        pass #tell the
+    def canPurchase(self, b, report, block, quickTiming, randomTime):
+        block.release()
+        # sys.stdout.write("--player " + str(self.id) + " released block " + "\n")
+        self.wait(0.3, 0.6, quickTiming,randomTime) #---------------------------------------------------------------

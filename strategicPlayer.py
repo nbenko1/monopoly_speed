@@ -11,11 +11,10 @@ class StrategicPlayer(player.Player):
         super().__init__(player_id)
         self.type = "strategic"
 
-    def canPurchase(self, b,report, block, quickTiming):
-
-        time.sleep(round(0.5/quickTiming,1))#---------------------------------------check cards for property
+    def canPurchase(self, b, report, block, quickTiming, randomTime):
 
 
+        bought = False
 
         tile = b.getTile(self.tile)
         for card in self.commChest:
@@ -23,15 +22,20 @@ class StrategicPlayer(player.Player):
             for i in range(5,len(card)):
                 propSet = card[i]
          
-                if tile[0] in propSet or self.money >= 2000: 
+                if tile[0] in propSet and not bought or self.money >= 2000 and not bought: 
                     tile[1] = self.id
-     
+
+                    bought = True
                    
-                    self.wait(2.0, 2.5, quickTiming)
-                    # time.sleep(random.randint(2,3)/quickTiming)#--------------------------buys property
-                    # time.sleep(random.uniform(2.0,2.5)/quickTiming)#--------------------------buys property
+                   
                    
                     self.money -= 1000
                     self.properties.append(tile[0]) # saves property id to player
                     if report: sys.stdout.write("player " + str(self.id) + " bought " + str(self.tile)  + "\n")
-                    return
+                    break
+
+        block.release()
+        # sys.stdout.write("--player " + str(self.id) + " released block " + "\n")
+        
+        self.wait(0.4,0.6,quickTiming, randomTime) #-------------------------------------------------------------    
+        if bought: self.wait(2.0, 2.5, quickTiming, randomTime)#-------------------------------------------------------------
