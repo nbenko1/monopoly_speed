@@ -158,7 +158,7 @@ class Player:
 
 
         card = random.choice(self.chance)
-        if len(self.chance) == 1 and self.chance[0][0] == 2:
+        if len(self.chance) == 0 or len(self.chance) == 1 and self.chance[0][0] == 2:
             print("no playable cards")
             return
         while card[0] == 2:

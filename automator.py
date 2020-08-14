@@ -40,18 +40,18 @@ timeMultiplier = 2.0
 
 # if True, some randomness will be implemented into the timings
 # if False, each action will take the same amount of time each instance
-randomTime = False
+randomTime = True
 
 #timing charts
 #if False will default to regular game timings
 #"trading" must be True for this to come into effect
 customTimes = False #if this is true the round timing will be overriden with the following times
 # buyStage = [30.0,30.0,30.0,30.0]
-# tradeStage = [4.0,4.0,4.0,4.0]
+tradeStage = [4.0,4.0,4.0,4.0]  # this is currently ignored - once each card is played the game moves on
 
 #defaults
 buyStage = [30.0,20.0,20.0,10.0]
-tradeStage = [40.0,50.0,70.0,70.0] # this is currently ignored - once each card is played the game moves on
+# tradeStage = [40.0,50.0,70.0,70.0] # this is currently ignored - once each card is played the game moves on
 
 #---------------------------------------------#
 
@@ -64,40 +64,39 @@ greedyPath = [] # the total path for all greedy players and rounds
 strategicPath = [] # same for strategic
 conservativePath = [] #^^^ for cons
 
-
-# gameLength = gameLength/quickTiming # speeds up game
-
-# if quickTiming != 1.0: 
-#     gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
-#     if trading:
-#         for time in buyStage:
-#             time = time/quickTiming
+quickTiming = timeMultiplier
+gameLength = gameLength/quickTiming # speeds up game
+if quickTiming != 1.0: 
+    gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
+    if trading:
+        for time in buyStage:
+            time = time/quickTiming
 
 for gameNumber in range(1,numberOfRounds+1):
 
-    buyStage = [30.0,20.0,20.0,10.0]
-    tradeStage = [40.0,50.0,70.0,70.0]
-    quickTiming = timeMultiplier
+    # buyStage = [30.0,20.0,20.0,10.0]
+    # tradeStage = [40.0,50.0,70.0,70.0]
+    # quickTiming = timeMultiplier
     
     # if gameNumber > 2:
-    randomTime = False
+    # randomTime = False
 
     # for time structure testing
-    if gameNumber % 2== 0:
-        randomTime = True
+    # if gameNumber % 2== 0:
+    #     randomTime = True
 
     # gameLength = 180
-    if gameNumber <= 2: 
-        quickTiming = 1.0
-    elif gameNumber >= 3 and gameNumber <= 4:
-        quickTiming = 2.0
+    # if gameNumber <= 2: 
+    #     quickTiming = 1.0
+    # elif gameNumber >= 3 and gameNumber <= 4:
+    #     quickTiming = 2.0
     # elif gameNumber >= 5: 
     #     quickTiming = 4.0
-    if quickTiming != 1.0: 
-        gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
-        if trading:
-            for i in range(len(buyStage)):
-                buyStage[i] = round(buyStage[i]/quickTiming,2)
+    # if quickTiming != 1.0: 
+    #     gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
+    #     if trading:
+    #         for i in range(len(buyStage)):
+    #             buyStage[i] = round(buyStage[i]/quickTiming,2)
 
 
     # if quickTiming != 1.0: gameLength = round(gameLength/quickTiming,2) # adjusts for time drift
