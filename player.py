@@ -155,19 +155,20 @@ class Player:
 
     def playChance(self, players, b, report):
         time.sleep(1)
-
-
-        card = random.choice(self.chance)
+ 
         if len(self.chance) == 0 or len(self.chance) == 1 and self.chance[0][0] == 2:
             print("no playable cards")
             return
+
+        card = random.choice(self.chance)
+
         while card[0] == 2:
             card = random.choice(self.chance)
 
         self.chance.remove(card)
  
-        if report: print("\n", "  ----beginning trading round for player", self.id)
-        if report: print("playing card", card)
+        if report: print("\n", "  ---- beginning trading round for player", self.id,"----")
+        if report: print("playing card:", card)
   
         found = False
         if card[0] == 1: #take any unowned property
@@ -211,7 +212,7 @@ class Player:
             for prop in mostWanted:
                 for player in players:
                     if prop in player.properties and player.id != self.id:
-                        if report: print("player", self.id, "is swapping", leastWanted, "for", prop, "from", player.id)
+                        if report: print("player", self.id, "is swapping", leastWanted, "for", prop, "from player", player.id)
                         #checks if the player has a cancel card
                         for card in player.chance:
                             if card[0] == 2: # if the player has a cancel card
@@ -239,7 +240,7 @@ class Player:
             for prop in mostWanted:
                 for player in players:
                     if prop in player.properties and player.id != self.id:
-                        if report: print("player", self.id, "is stealing property", prop, "from", player.id)
+                        if report: print("player", self.id, "is stealing property", prop, "from player", player.id)
 
                         for card in player.chance:
                             if card[0] == 2: # if the player has a cancel card
@@ -277,8 +278,8 @@ class Player:
                 cancel = False
                 if report: print("player", chosenPlayer.id, "was chosen")
                 for card in chosenPlayer.chance:
-                    if card[0] == 2 and card[1] == 1: # if the player has a cancel card
-                        player.chance.remove(card)
+                    if card[0] == 2: # if the player has a cancel card
+                        chosenPlayer.chance.remove(card)
                         if report: print("the card was canceled")
                         cancel = True
                 

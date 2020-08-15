@@ -36,7 +36,7 @@ playerTypes = ["g","s","c"] #TODO long simulations should shuffle this to avoid 
 # if == 1.0 then it will play at normal speed
 # each wait command length is divided by this number
 # so == 2 is 2x normal speed, 3 is 3x and so on
-timeMultiplier = 2.0
+timeMultiplier = 4.0
 
 # if True, some randomness will be implemented into the timings
 # if False, each action will take the same amount of time each instance
@@ -45,7 +45,7 @@ randomTime = True
 #timing charts
 #if False will default to regular game timings
 #"trading" must be True for this to come into effect
-customTimes = False #if this is true the round timing will be overriden with the following times
+customTimes = True #if this is true the round timing will be overriden with the following times
 # buyStage = [30.0,30.0,30.0,30.0]
 tradeStage = [4.0,4.0,4.0,4.0]  # this is currently ignored - once each card is played the game moves on
 
@@ -66,13 +66,15 @@ conservativePath = [] #^^^ for cons
 
 quickTiming = timeMultiplier
 gameLength = gameLength/quickTiming # speeds up game
-if quickTiming != 1.0: 
+if quickTiming != 1.0:  # this loop speeds up the timing for the trading rounds
     gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
     if trading:
         for time in buyStage:
             time = time/quickTiming
 
 for gameNumber in range(1,numberOfRounds+1):
+
+    #------FOR TIMING TESTING-----------
 
     # buyStage = [30.0,20.0,20.0,10.0]
     # tradeStage = [40.0,50.0,70.0,70.0]
@@ -98,10 +100,11 @@ for gameNumber in range(1,numberOfRounds+1):
     #         for i in range(len(buyStage)):
     #             buyStage[i] = round(buyStage[i]/quickTiming,2)
 
-
     # if quickTiming != 1.0: gameLength = round(gameLength/quickTiming,2) # adjusts for time drift
 
     # print("game", gameNumber, "length", gameLength)
+
+    #-----------------------------------
 
     details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming, randomTime, buyStage, tradeStage)
     df = pandas.read_csv('output.csv', index_col='ID') # creates a dataframe by reading the output from the previous game
