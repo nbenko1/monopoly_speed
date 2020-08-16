@@ -21,7 +21,7 @@ startPosition = [0,0,0]
 gameLength = 45.0
 
 #number of games to play
-numberOfRounds = 4
+numberOfRounds = 5
 
 #real time print statements from the game
 printStatements = True
@@ -36,7 +36,7 @@ playerTypes = ["g","s","c"] #TODO long simulations should shuffle this to avoid 
 # if == 1.0 then it will play at normal speed
 # each wait command length is divided by this number
 # so == 2 is 2x normal speed, 3 is 3x and so on
-timeMultiplier = 4.0
+timeMultiplier = 1.0
 
 # if True, some randomness will be implemented into the timings
 # if False, each action will take the same amount of time each instance

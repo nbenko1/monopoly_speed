@@ -155,21 +155,21 @@ class Player:
 
     def playChance(self, players, b, report):
         time.sleep(1)
- 
+        print("1")
         if len(self.chance) == 0 or len(self.chance) == 1 and self.chance[0][0] == 2:
             print("no playable cards")
             return
-
+        print("2")       
         card = random.choice(self.chance)
 
         while card[0] == 2:
             card = random.choice(self.chance)
-
+        print("3")
         self.chance.remove(card)
  
         if report: print("\n", "  ---- beginning trading round for player", self.id,"----")
         if report: print("playing card:", card)
-  
+        print("4")
         found = False
         if card[0] == 1: #take any unowned property
             # loop through wanted properties

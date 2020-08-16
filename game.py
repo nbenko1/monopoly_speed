@@ -314,9 +314,9 @@ def start():
     global curTime
     global b
 
-    for r in range(1,4):
+    for r in range(0,4):
        
-        print("Starting Buying Round", r)
+        print("Starting Buying Round", r+1)
         threads = list()
         for player in players: #creates a thread for each player
             # if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
