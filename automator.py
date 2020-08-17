@@ -21,7 +21,7 @@ startPosition = [0,0,0]
 gameLength = 45.0
 
 #number of games to play
-numberOfRounds = 5
+numberOfRounds = 6
 
 #real time print statements from the game
 printStatements = True
@@ -36,7 +36,7 @@ playerTypes = ["g","s","c"] #TODO long simulations should shuffle this to avoid 
 # if == 1.0 then it will play at normal speed
 # each wait command length is divided by this number
 # so == 2 is 2x normal speed, 3 is 3x and so on
-timeMultiplier = 1.0
+timeMultiplier = 3.0
 
 # if True, some randomness will be implemented into the timings
 # if False, each action will take the same amount of time each instance
@@ -50,7 +50,7 @@ customTimes = True #if this is true the round timing will be overriden with the 
 tradeStage = [4.0,4.0,4.0,4.0]  # this is currently ignored - once each card is played the game moves on
 
 #defaults
-buyStage = [30.0,20.0,20.0,10.0]
+buyStage = [30.0,30.0,30.0,30.0]
 # tradeStage = [40.0,50.0,70.0,70.0] # this is currently ignored - once each card is played the game moves on
 
 #---------------------------------------------#
@@ -69,8 +69,8 @@ gameLength = gameLength/quickTiming # speeds up game
 if quickTiming != 1.0:  # this loop speeds up the timing for the trading rounds
     gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
     if trading:
-        for time in buyStage:
-            time = time/quickTiming
+        for i in range(len(buyStage)):
+            buyStage[i] = buyStage[i]/quickTiming
 
 for gameNumber in range(1,numberOfRounds+1):
 
@@ -136,7 +136,7 @@ for gameNumber in range(1,numberOfRounds+1):
     '''
 
     for i in range(numberOfPlayers):
-        if details[i][2] == True: # if the player won
+        if details[i][2] == "Winner" or details[i][2] == "Tie": # if the player won
             winnerList.append(details[i][1])
         if details[i][1] == 'greedy': # saves the path for the greedy player
             greedyPath.extend(details[i][9])

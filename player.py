@@ -35,7 +35,7 @@ class Player:
         self.type = "greedy"
         self.id = player_id
         self.tile = 0 #current location
-        self.winner = False
+        self.winner = "Loser"
         self.totalWaitTime = 0.0
 
         #game progress
@@ -156,13 +156,20 @@ class Player:
     def playChance(self, players, b, report):
         time.sleep(1)
         print("1")
-        if len(self.chance) == 0 or len(self.chance) == 1 and self.chance[0][0] == 2:
+        numCancel = 0
+        for card in self.chance:
+            if card[0] == 2:
+                numCancel += 1
+
+        if len(self.chance) == 0 or len(self.chance) == numCancel:
             print("no playable cards")
             return
         print("2")       
+
         card = random.choice(self.chance)
 
-        while card[0] == 2:
+        while card[0] == 2: # this could be getting stuck
+            print("yeah we stuck looping")
             card = random.choice(self.chance)
         print("3")
         self.chance.remove(card)

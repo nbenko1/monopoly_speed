@@ -396,8 +396,12 @@ def payout(players):
                 propWinners.append(player)
         winners = propWinners
 
-    for player in winners:
-        player.winner = True
+    if len(winners) > 1:
+        for player in winners:
+            player.winner = "Tie"
+    else: 
+        for player in winners:
+            player.winner = "Winner"
 
 
 #prints out stats from the game <- possible logging class? 
