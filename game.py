@@ -38,33 +38,26 @@ import pandas
 # + Add method in the player class that adds up all money at the end of the game - need cards first
 # + Print data to CSV at end of the game
 # + stats for each round - total at end
+# + with and without chance cards
+# + Chance cards
+# + test "findWantedProperty()"
+# + get accurate timing for the player actions
 
 #------------main goals
-#TODO --- Chance cards
-#TODO - with and without chance cards
-#TODO --- which chest cards gave which money
-#TODO - test "findWantedProperty()"
+#TODO --- which chest cards gave which money - more detailed??
 
 
 #-------------non code todos and figure outs
-#TODO check out the sheet
-#TODO get accurate timing for the player actions
-    #the way it works right now is the payer finished their turn
-    #even after the timer ends - the threads line back up but the rounds last longer than they should
-    #I dont know how to fix this without a lot of added complexity - but it varies up to 6 seconds
-        # add "playing" boolean thats checked during the buying method
-#TODO right now it checks for time after the role, so a player can move to a space but not have time to buy it
-
 
 #-------------less important
 #TODO - print board in a readable format
-#TODO add one more layer to the tie check
+#TODO - add one more layer to the tie check
 
 #-------------------------------------------------------------------------------------------------------------------
 
 
 block = threading.Lock() # mutex for the board
-c_lock = threading.Lock() # mutex for the card decks
+# c_lock = threading.Lock() # mutex for the card decks
 t_lock = threading.Lock() # mutex for the trading round
 
 #initialize game elements
@@ -127,8 +120,8 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
     players = []
     global block  #mutex lock for the board object
     block = threading.Lock() # mutex for the board
-    global c_lock # mutex lock for the card decks
-    c_lock = threading.Lock() # mutex for the card decks
+    # global c_lock # mutex lock for the card decks
+    # c_lock = threading.Lock() # mutex for the card decks
 
     #reads in array of player types and creates each one
     for i in range(0,numPlayers): 
@@ -176,7 +169,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
     payout(players)
 
     #prints the stats of the game
-    if report: printStats()
+    # if report: printStats()
 
     #saves stats to CSV
     stats = printCSV()
@@ -206,7 +199,7 @@ def gameSetup(players):
 
 
    
-#runs the game as one long buying round - mainly for testing
+#runs the game as one long buying round
 def noTradeGame(player):
     global curTime 
     curTime = time.time()
@@ -217,7 +210,7 @@ def noTradeGame(player):
         buyRound(player, endTime)
         curTime = time.time()
 
-#runs the buying stage of the game for a player for a certain amount of time
+#runs the buying stage of the game for a single player for a specified amount of time
 def buyStage(player, rEndTime):
     # print("buying")
     curTime = time.time()
@@ -233,7 +226,7 @@ def tradeStage(player, rEndTime):
     curTime = time.time()
     startTime = curTime
     tradeRound(player)
-    # while curTime <= rEndTime: # uncomment this to have the trade round take the normal amount of time
+    # while curTime <= rEndTime: # uncomment this to have the trade round take the normal amount of time doesn't change the game
     #     curTime = time.time()
     # print("P",player.id,"trading", curTime - startTime)
 
@@ -242,7 +235,7 @@ def buyRound(player, endTime):
     global quickTiming
     global randomTime
     player.move(report, quickTiming, randomTime)
-    if time.time() >= endTime: return # checks for time after the move - so right now the player can land on a space but not have time to buy it
+    if time.time() + 1.5/quickTiming >= endTime: return # checks for time after the move - makes sure theres at least 1.5 seconds to make the move
 
     #tile action phase
     if player.tile == 24: #on go to jail 
@@ -280,20 +273,21 @@ def buyRound(player, endTime):
     else: print("something went very wrong -> player jumped the board") 
 
 
-#upload to a global list - each player
+# handles the trading round for each player individually
+# ecah player plays a chance card one at a time, when they're all done the round ends
 def tradeRound(player):
     global t_lock
-    sys.stdout.write("\n" + "ENTERING TRADING STAGE" + "\n")
+    # sys.stdout.write("\n" + "ENTERING TRADING STAGE" + "\n")
 
     # each player plays a card - one at a time
-    sys.stdout.write("player " + str(player.id) + " is requesting t_lock" +"\n")
+    # sys.stdout.write("player " + str(player.id) + " is requesting t_lock" +"\n")
     t_lock.acquire()
-    sys.stdout.write("player " + str(player.id) + " got it" +"\n")
+    # sys.stdout.write("player " + str(player.id) + " got it" +"\n")
 
     player.playChance(players,b, report)
-
+    time.sleep(1) # slight delay so printing doesn't go by too fast
     t_lock.release()
-    sys.stdout.write("player " + str(player.id) + " released it" +"\n")
+    # sys.stdout.write("player " + str(player.id) + " released it" +"\n")
 
 
 
@@ -314,9 +308,10 @@ def start():
     global curTime
     global b
 
-    for r in range(0,4):
+    for r in range(0,4): # plays four rounds of buy-trade stages
        
-        print("Starting Buying Round", r+1)
+       #buy round
+        print("\n","               Buying Round", r+1, "\n", "              ----------------\n")
         threads = list()
         for player in players: #creates a thread for each player
             # if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
@@ -329,22 +324,25 @@ def start():
             thread.join() #shouldn't be necessary but here just in case
 
         threads.clear()
-        print("Starting Trading Round", r)
+        print("\n","               Trading Round", r+1, "\n", "              -----------------\n")
         curTime = time.time()
 
+        #trade round
         for player in players: #creates a thread for each player
             # if report: sys.stdout.write("STARTING GAME FOR PLAYER " + str(player.id)  + '\n' + '\n')
-            endTime = curTime + ts[r]
-          
-            playerThread = threading.Thread(target=tradeStage, args=(player,endTime))
-            
+            endTime = curTime + ts[r] # checks how long this round should take
+            playerThread = threading.Thread(target=tradeStage, args=(player,endTime)) # calls method
             threads.append(playerThread) #adds to list
         for playerThread in threads: #starts each thread
             playerThread.start() #starts each player
         for index, thread in enumerate(threads): #waits for each thread to end before moving forward
             thread.join() #shouldn't be necessary but here just in case
         print("")
+
+
         if report: b.print()
+
+
         curTime = time.time()
 
 
@@ -370,7 +368,7 @@ def payout(players):
     winningAmount = 0
     winners = []
     for player in players:
-        if report: print("\n --payout for community chest", player.id, "--")
+        if report: print("\n --community chest payout for player", player.id, "--")
         commDeck.payout(player, report)
         if report: print("\n")
 
@@ -425,7 +423,7 @@ def printStats():
         print("Money from GO:", player.mGo)
         print("Money from community chest:", player.mChest)
         print("Number of roles:", player.numRoles)
-        print("Roles:", player.roles)
+        # print("Roles:", player.roles)
         print("Path:", player.path)
         print("Properties:", player.properties)
         
@@ -448,11 +446,12 @@ def printCSV():
 ########################
 #    CHANGE HEADER     #
 ########################
-        output.writerow(['ID','player_type','winner?','Total_Money','Money_from_GO','Money_from_Chest','Money_from_properties','Starting_Pos','num_moves','path','Passed_go','Jail','Properties','Chest_Cards', "Chest Card Payout", "Total Wait"])
+        output.writerow(['ID','Player Type','Winner?','Total Money','Money from GO','Money from Chest','Money from properties','Starting Position','Number of Moves','Path','Times Passed Go','Times in Jail','Properties','Chest Cards', "Chest Card Payout", "Total Wait"])
 ########################
 
         output.writerow([''])
         output.writerow(["","round", str(gameCount) ,gameTime, "seconds", quickTiming, "x speed", "randomized time:", randomTime])
+
         for player in players:
             playerChestCardsID = []
             for i in range(len(player.commChest)):
@@ -485,40 +484,3 @@ def lezgo():
         if i == 9: print("----------------< MONOPOLY >-------------------")
         if i == 12: print("--------------------------< SPEED >------------")
     print("")
-
-
-#sets up players using terminal input
-def manualSetup(): # OBSELETE
-    numPlayers = int(input("how many players: ")) #freaks out if you dont pass an int
-    for count in range(1,numPlayers+1):
-        print(numPlayers)
-        sys.stdout.write("what would you like player " + str(count))
-        playerID = input(" to be called? ")
-        player_t = player.Player(playerID)
-        startPos = -1
-        while(startPos != "1" and startPos != "2"):
-            startPos = input("type '1' or '2' to choose your starting position: ")
-            int(startPos)
-            print(type(startPos))
-            if startPos != "1" and startPos != "2":
-                print("please type either 'first' or 'second'")
-        if startPos == "1": player.startingPos = 0
-        elif startPos == "2": player.startingPos = 16
-        else: print("something went wrong with your starting position please start over")
-        players.append(player_t)
-
-# curTime = time.time() 
-# endTime = curTime + gameLength
-
-#GAME METHODS
-# manualSetup() # set up players through terminal input
-# gameSetup(players)
-# lezgo() #important
-# start(players)
-# payout(players)
-# printStats(players)
-# printCSV(players)
-
-#automates game creation
-#inputs(number of players, starting position, length of the game, number of rounds)
-# run(3, 0, 10.0, 1, True)

@@ -154,29 +154,29 @@ class Player:
 
 
     def playChance(self, players, b, report):
-        time.sleep(1)
-        print("1")
+
+        # print("1")
         numCancel = 0
-        for card in self.chance:
+        for card in self.chance: # counts how many cancel cards are in the deck
             if card[0] == 2:
                 numCancel += 1
 
-        if len(self.chance) == 0 or len(self.chance) == numCancel:
-            print("no playable cards")
+        if len(self.chance) == 0 or len(self.chance) == numCancel: # if there are only cancel cards
+            print("player", self.id, "has no playable cards")
             return
-        print("2")       
+        # print("2")       
 
-        card = random.choice(self.chance)
+        card = random.choice(self.chance) # draw random card
 
-        while card[0] == 2: # this could be getting stuck
-            print("yeah we stuck looping")
+        while card[0] == 2: # if the chosen card is a cancel
             card = random.choice(self.chance)
-        print("3")
-        self.chance.remove(card)
+            print("this should never appear more than a few times in a row")
+        # print("3")
+        self.chance.remove(card) # remove chosen card from hand
  
-        if report: print("\n", "  ---- beginning trading round for player", self.id,"----")
+        if report: print("\n", "  ---- Trading Round for Player", self.id,"----")
         if report: print("playing card:", card)
-        print("4")
+        # print("4")
         found = False
         if card[0] == 1: #take any unowned property
             # loop through wanted properties
@@ -196,8 +196,8 @@ class Player:
     
 
         if card[0] == 2: #cancel a chance card played against you
-            print("shouldn't be here")
-            pass # cannot be drawn
+            print("something messed up I shouldn't have this card")
+            pass
 
         if card[0] == 3: #swap with another player
             if report: print("starting card 3 process - swap with another player")
@@ -208,13 +208,12 @@ class Player:
                 if report: print("player", self.id, "has no properties to trade")
                 return
 
-            #TODO move this to method???
             for prop in self.properties: # removes all properties that are already owned
                 if prop in mostWanted:
                     mostWanted.remove(prop)
 
-            if report: print("least wanted card is", leastWanted)
-            if report: print("most wanted is", mostWanted)
+            if report: print("least wanted property is:", leastWanted)
+            if report: print("most wanted properties are:", mostWanted)
 
             for prop in mostWanted:
                 for player in players:
@@ -224,7 +223,7 @@ class Player:
                         for card in player.chance:
                             if card[0] == 2: # if the player has a cancel card
                                 player.chance.remove(card)
-                                if report: print("the card was cancelled!")
+                                if report: print("the card was canceled!")
                                 return
 
                         #give self wanted property
@@ -254,14 +253,13 @@ class Player:
                                 player.chance.remove(card)
                                 if report: print("the card was canceled")
                                 return
-                        if report: print(prop, "was stolen")
                         #give self wanted property
                         player.properties.remove(prop) # remove from player
                         self.properties.append(prop) # give to self
                         b.getTile(prop)[1] = self.id # change owner on the board
                         return
 
-            if report: print("player", self.id, "couln't find a card to steal")
+            if report: print("player", self.id, "couldn't find a card to steal")
     
         if card[0] == 5: #return any property owned by another player to the board
             if report: print("starting card 5 process - return prop from another player")
@@ -283,7 +281,6 @@ class Player:
             else:
                 #do nothing if the player has a cancel card
                 cancel = False
-                if report: print("player", chosenPlayer.id, "was chosen")
                 for card in chosenPlayer.chance:
                     if card[0] == 2: # if the player has a cancel card
                         chosenPlayer.chance.remove(card)
@@ -300,20 +297,15 @@ class Player:
                             chosenPlayer.properties.remove(prop) # remove the property from the player 
                             boardPlace = b.getTile(prop) # loop through each board tile
                             boardPlace[1] = 0 # set status to unowned
-                            if report: print("returning", prop, "to the board")
+                            if report: print("returning", prop, "from", chosenPlayer.id, "to the board")
                             break
 
 
 
 
 
-
-    """
-    needs some thought - more balance - god this is kicking my ass
-    """
     #assigns a score to each property owned by the player
     #then chooses the property with the lowest score and returns it
-    #need to TEST THE HELL out of this method
     #returns -1 if no properties
     #TODO fix group card scoring - mostly done, might be worth a another look
     def findLeastNeededProp(self):
@@ -365,21 +357,22 @@ class Player:
         return worstProp
 
 
-    # ranks each possible property and returns the list as a list of tuples with [prop id, score]
+    # ranks each possible property and returns a ranked list of tuples with [prop id, score]
     def findWantedProperty(self):
         propScore = []
         for props in pSet:
             for prop in props:
                 propScore.append([prop, 0]) # a list with [prop, score]
 
-        #addes points if property matches reqs on chest cards
+        #adds points if property matches reqs on chest cards
         for propSet in propScore:
             for card in self.commChest:
                 for i in range(5,len(card)):
                     if propSet[0] in card[i]: # if the property matches a req on a chest card
-                        propSet[1] = propSet[1]  + 1 # gives that property points
+                        
+                        propSet[1] += 1 # gives that property points
                         if card == [2, 1, "group", 2000, 2, yellow, dblue]:
-                            propSet[1] = propSet[1] + 2 #group card gets extra boost
+                            propSet[1] += 2 #group card gets extra boost
 
         # print(propScore)
 
@@ -390,7 +383,7 @@ class Player:
         for prop in self.properties:
             for countSet in countSets:
                 if prop in countSet[0]:
-                    countSet[1] = countSet[1] + 1
+                    countSet[1] += 1
 
         # print(countSets)
 

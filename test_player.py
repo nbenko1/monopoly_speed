@@ -379,9 +379,9 @@ class TestPlayer(unittest.TestCase):
                     place[1] = 1
                 if place[0] in p2.properties:
                     place[1] = 2
-        b.print()
+        # b.print()
         p1.playChance(players, b, False)
-        b.print()
+        # b.print()
         self.assertEquals(b.getTile(7)[1],1) # board shows player 1 owns 7
         self.assertEquals(b.getTile(1)[1],2) # board shows player 2 owns 1
         self.assertTrue(7 in p1.properties) # player 1 owns 4
@@ -408,9 +408,9 @@ class TestPlayer(unittest.TestCase):
                     place[1] = 1
                 if place[0] in p2.properties:
                     place[1] = 2
-        b.print()
+        # b.print()
         p1.playChance(players, b, False)
-        b.print()
+        # b.print()
         self.assertEquals(b.getTile(7)[1],2) # board shows player 2 owns 7
         self.assertFalse(7 in p1.properties) # player 1 owns 4
         self.assertTrue(7 in p2.properties) # player 2 owns 5
@@ -472,7 +472,7 @@ class TestPlayer(unittest.TestCase):
    
         p1.playChance(players, b, False)
  
-        print(p1.properties)
+        # print(p1.properties)
         self.assertEquals(b.getTile(7)[1],1) # board shows player 1 owns 21
         self.assertFalse(7 in p2.properties) # player 2 does not own 21
         self.assertTrue(7 in p1.properties) # player 1 does
@@ -505,7 +505,7 @@ class TestPlayer(unittest.TestCase):
        
         p1.playChance(players, b, False)
         
-        print(p1.properties)
+        # print(p1.properties)
 
         self.assertEquals(len(p3.properties), 2) # make sure that the property was taken
         self.assertEquals(b.getTile(10)[1], 0) # no one owns it on the board
@@ -536,18 +536,74 @@ class TestPlayer(unittest.TestCase):
                 if place[0] in p2.properties:
                     place[1] = 2
 
-        b.print()
+        # b.print()
         p1.playChance(players, b, False)
-        b.print()
-        print(p1.properties)
+        # b.print()
+        # print(p1.properties)
 
         self.assertEquals(len(p3.properties), 0) # make sure that the property was taken
         self.assertEquals(b.getTile(29)[1], 0) # no one owns it on the board
         self.assertEquals(len(p2.properties), 0)
 
+    def test_findWantedProperty(self):
+        # p1.properties.extend([1,2,3,4,5,6,7,9,10,11,12,13,14,18,19,20,21,22,23,25,26,27,28,29,30,31])
+    
+        # p1 = player.Player(1)
+        # p1.commChest.append([1, 1, "partGroup", 2000, 3, brown, lblue, dblue])
+        # p1.commChest.append([2, 1, "group", 2000, 2, yellow, dblue])
+        # p1.commChest.append([3, 1, "partGroup", 2000, 3, pink, orange, green])
+        # p1.commChest.append([4, 1, "set", 4000, 1, red])
+        # p1.commChest.append([5, 1, "set", 4000, 1, green])
+        # p1.commChest.append([6, 1, "set", 4000, 1, yellow])
+        # p1.commChest.append([7, 1, "set", 3000, 1, pink])
+        # p1.commChest.append([8, 1, "set", 3000, 1, orange])
+        # p1.commChest.append([9, 1, "set", 2000, 1, utilities])
+        # p1.commChest.append([10, 2, "anySet", 1000, 9, brown, lblue, pink, orange, red, yellow, green, dblue, utilities])
+        # p1.commChest.append([11, 1, "rail", 1000, 4, railroads])
+        # p1.properties.extend([1,2,3,4,5,6,7,9,10,11,12,13,14,18,19,20,21,22,23,25,26,27,28,29,30,31])
+        # p1.chance.append([1, 2, "keep", "take any unowned property"])
+        # p1.chance.append([2, 2, "keep", "cancel a chance card that is played against you"])
+        # p1.chance.append([3, 3, "keep", "swap any one of your properties with any one of anothers players properties"])
+        # p1.chance.append([4, 4, "keep", "steal any one property from another player"])
+        # p1.chance.append([5 ,5, "use", "choose any property owned by another player and immediately return it to the board"])
+    
+        # players = [p1,p2]
+        # b = board.Board()
+        # for key, value in b.tiles.items(): #loops through dictionary
+        #     for place in value:
+        #         if place[0] in p1.properties:
+        #             place[1] = 1
+        #         if place[0] in p2.properties:
+        #             place[1] = 2
+        # p1.playChance(players, b, False)
+        # self.assertEquals(b,)
+        # self.assertTrue(in p1.properties)
 
+        #basic checks
+        p1 = player.Player(1)
+        p1.properties.extend([1,2,3])
+        rankedList = p1.findWantedProperty()
+        self.assertEqual([rankedList[0],rankedList[1],rankedList[2]], [1,3,2])
+        p1.commChest.append([7, 1, "set", 3000, 1, pink])
+        rankedList = p1.findWantedProperty()
+        self.assertEqual([rankedList[0],rankedList[1],rankedList[2],rankedList[3],rankedList[4],rankedList[5]], [1,3,9,10,11,2])
 
+        # property set vs  incomplete comm chest set
+        p1 = player.Player(1)
+        p1.properties.extend([17,10,19,9,18])
+        rankedList = p1.findWantedProperty()
+        self.assertEqual([rankedList[0],rankedList[1],rankedList[2],rankedList[3],rankedList[4]], [17,18,19,9,10])
+        p1.commChest.append([7, 1, "set", 3000, 1, pink])
+        rankedList = p1.findWantedProperty()
+        self.assertEqual([rankedList[0],rankedList[1],rankedList[2],rankedList[3],rankedList[4],rankedList[5]], [9,10,11,17,18,19])
 
+        # full comm chest set vs half group set
+        p1 = player.Player(1)
+        p1.properties.extend([9,10])
+        p1.commChest.append([7, 1, "set", 3000, 1, pink])
+        p1.commChest.append([2, 1, "group", 2000, 2, yellow, dblue])
+        rankedList = p1.findWantedProperty()
+        self.assertEqual([rankedList[0],rankedList[1],rankedList[2],rankedList[3],rankedList[4],rankedList[5]], [9,10,11,21,22,23])
 
 if __name__ == '__main__':
     unittest.main()

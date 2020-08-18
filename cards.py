@@ -103,7 +103,7 @@ class CommChestDeck:
                     player.money += 2000
                     player.mChest += 2000
                     player.commChestPayout.append([card[0], card[3]])
-                    if report: print("money + 2000 for partGroup")
+                    if report: print("\n             + 2000 for partGroup\n")
 
             if card[2] == "group": # one in each
                 #print("CARD", card[2])
@@ -123,7 +123,7 @@ class CommChestDeck:
                     player.money += card[3]
                     player.mChest += card[3]
                     player.commChestPayout.append([card[0], card[3]])
-                    if report: print("money +", card[3], "for group")
+                    if report: print("\n             +", card[3], "for group\n")
 
             if card[2] == "set": #full set
                 #print("CARD", card[2])
@@ -136,7 +136,7 @@ class CommChestDeck:
                         player.money += card[3] 
                         player.mChest += card[3]
                         player.commChestPayout.append([card[0], card[3]])
-                        if report: print("money +", card[3], "for set")
+                        if report: print("\n             +", card[3], "for set\n")
                     
             if card[2] == "anySet":
                 #print("CARD", card[2])
@@ -148,7 +148,7 @@ class CommChestDeck:
                         player.money += card[3] 
                         player.mChest += card[3]
                         player.commChestPayout.append([card[0], card[3]])
-                        if report: print("money +", card[3], "for anySet")
+                        if report: print("             +", card[3], "for anySet\n")
 
             if card[2] == "rail":
                 # print("CARD", card[2])
@@ -158,7 +158,7 @@ class CommChestDeck:
                         player.money += 1000
                         player.mChest += 1000
                         player.commChestPayout.append([card[0], card[3]])
-                        if report: print("money + 1000 for rail")
+                        if report: print("             + 1000 for rail\n")
                     
 
 
