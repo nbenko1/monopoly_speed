@@ -14,13 +14,13 @@ numberOfPlayers = 3
 #starting position for each player
 startPosition = [0,0,0]
 
-#how long the game will go in seconds
+#how long the game will go in seconds - only if trading == False
 gameLength = 45.0
 
 #number of games to play
-numberOfRounds = 1
+numberOfRounds = 2
 
-#real time print statements from the game
+#real time print statements from the game to the terminal
 printStatements = True
 
 #True: separate buying and trading rounds
@@ -32,24 +32,20 @@ playerTypes = ["g","s","c"]
 
 # if == 1.0 then it will play at normal speed
 # so == 2 is 2x normal speed, 3 is 3x and so on
+# this does not affect the trading round - which will always take a total of 20 seconds per game
 timeMultiplier = 3.0
 
 # if True, some randomness will be implemented into the timings
 # if False, each action will take the same amount of time each instance
 randomTime = True
 
-
-#if False will default to regular game timings
-#"trading" must be True for this to come into effect
-customTimes = True #if this is true the round timing will be overriden with the following times
-
 # timing charts
 # buyStage = [30.0,30.0,30.0,30.0]
-tradeStage = [4.0,4.0,4.0,4.0]  # this is currently ignored - once each card is played the game moves on
+tradeStage = [5.0,5.0,5.0,5.0] 
 
 #defaults
 buyStage = [30.0,20.0,20.0,10.0]
-# tradeStage = [40.0,50.0,70.0,70.0] # this is currently ignored - once each card is played the game moves on
+# tradeStage = [40.0,50.0,70.0,70.0] 
 
 #---------------------------------------------#
 
@@ -63,6 +59,9 @@ winnerList = [] # saves a list of the player type of each winner
 greedyPath = []
 strategicPath = [] 
 conservativePath = []
+points = []
+for i in range(numberOfPlayers):
+    points.append(0)
 
 
 quickTiming = timeMultiplier # changes the name to avoid confusion - but probably makes it more confusing for everyone else
@@ -80,7 +79,8 @@ if quickTiming != 1.0:  # this loop speeds up the timing for the trading rounds
 for gameNumber in range(1,numberOfRounds+1):
 
 
-    details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming, randomTime, buyStage, tradeStage)
+
+    details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming, randomTime, buyStage, tradeStage, points)
     df = pandas.read_csv('output.csv', index_col='ID') # creates a dataframe by reading the output from the previous game
     frames.append(df)
 
@@ -96,29 +96,33 @@ for gameNumber in range(1,numberOfRounds+1):
     0: ID
     1: player type
     2: winner
-    3: total money
-    4: money from go
-    5: money from properties
-    6: money from chance
-    7: starting position
-    8: number of moves
-    9: path
-    10: times passed go
-    11: times jailed
-    12: properties owned
-    13: chest cards
+    3: Points
+    4: total money
+    5: money from go
+    6: money from chest
+    7: money from properties
+    8: starting position
+    9: number of moves
+    10: path
+    11: times passed go
+    12: times jailed
+    13: properties owned
+    14: chest cards
+    15: chest card payouts
+    16: total wait
     '''
 
     for i in range(numberOfPlayers):
         if details[i][2] == "Winner" or details[i][2] == "Tie": # if the player won
             winnerList.append(details[i][1])
         if details[i][1] == 'greedy': # saves the path for the greedy player
-            greedyPath.extend(details[i][9])
+            greedyPath.extend(details[i][10])
         if details[i][1] == 'strategic': # path for the strategic player
-            strategicPath.extend(details[i][9])
+            strategicPath.extend(details[i][10])
         if details[i][1] == 'conservative': # path for the conservative player
-            conservativePath.extend(details[i][9])
+            conservativePath.extend(details[i][10])
 
+        points[i] = details[i][3] # update master list of points
 
 greedyTotalPath = []
 stratTotalPath = []
@@ -161,7 +165,6 @@ df.to_csv(r'reports\conservative_path.csv')
 player_result = pandas.concat(frames) #combines all the games details
 print(winnerList)
 player_result.to_csv(r'reports\report.csv')
-
 
 
 

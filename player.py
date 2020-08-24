@@ -9,10 +9,10 @@ from operator import itemgetter
 import cards
 import board
 
-
+#for testing
 chance = cards.ChanceDeck()
 chest = cards.CommChestDeck()
-
+#
 
 
 brown = [1,3]
@@ -52,6 +52,7 @@ class Player:
         self.path = []
         self.numRoles = 0
         self.spaceCovered = 0
+        self.points = 0.0
 
         #money breakdown
         self.mGo = 0 #money from passing GO
@@ -170,7 +171,6 @@ class Player:
 
         while card[0] == 2: # if the chosen card is a cancel
             card = random.choice(self.chance)
-            print("this should never appear more than a few times in a row")
         # print("3")
         self.chance.remove(card) # remove chosen card from hand
  
@@ -196,7 +196,7 @@ class Player:
     
 
         if card[0] == 2: #cancel a chance card played against you
-            print("something messed up I shouldn't have this card")
+            print("if this text appears than skynet is online and we're all doomed")
             pass
 
         if card[0] == 3: #swap with another player
@@ -218,7 +218,7 @@ class Player:
             for prop in mostWanted:
                 for player in players:
                     if prop in player.properties and player.id != self.id:
-                        if report: print("player", self.id, "is swapping", leastWanted, "for", prop, "from player", player.id)
+                        if report: print("player", self.id, "is swapping property", leastWanted, "for property", prop, "from player", player.id)
                         #checks if the player has a cancel card
                         for card in player.chance:
                             if card[0] == 2: # if the player has a cancel card
@@ -297,7 +297,7 @@ class Player:
                             chosenPlayer.properties.remove(prop) # remove the property from the player 
                             boardPlace = b.getTile(prop) # loop through each board tile
                             boardPlace[1] = 0 # set status to unowned
-                            if report: print("returning", prop, "from", chosenPlayer.id, "to the board")
+                            if report: print("returned property", prop, "from player", chosenPlayer.id, "to the board")
                             break
 
 

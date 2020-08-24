@@ -94,7 +94,7 @@ OfficialEndTime = 0.0
 ####################################################################################################################
 """
 #this method sets up and runs games depending on the input
-def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timing, randomFactor, buyStage, tradeStage):
+def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timing, randomFactor, buyStage, tradeStage, points):
 
     global bs # array with lengths for each buying stage
     bs = buyStage
@@ -135,7 +135,8 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
         else: 
             print("bad player type input")
             return
-        tempPlayer.startingPos = startingPos[i] # sets staring position for each player
+        tempPlayer.startingPos = startingPos[i] # sets starting position for each player
+        tempPlayer.points = points[i] # tracks number of points through multiple rounds
         players.append(tempPlayer) # add to total list of players
 
     print("\nSTARTING GAME", gameCount)
@@ -226,21 +227,22 @@ def tradeStage(player, rEndTime):
     curTime = time.time()
     startTime = curTime
     tradeRound(player)
-    # while curTime <= rEndTime: # uncomment this to have the trade round take the normal amount of time doesn't change the game
-    #     curTime = time.time()
+    while curTime <= rEndTime: # uncomment this to have the trade round take the normal amount of time -> doesn't change the game
+        curTime = time.time()
     # print("P",player.id,"trading", curTime - startTime)
 
 #this handles each move the player makes - and any purchases made during that turn
 def buyRound(player, endTime):
     global quickTiming
     global randomTime
+    if time.time() + 1.5/quickTiming >= endTime: return # makes sure there is 1.5 seconds to move the piece
     player.move(report, quickTiming, randomTime)
     if time.time() + 1.5/quickTiming >= endTime: return # checks for time after the move - makes sure theres at least 1.5 seconds to make the move
 
     #tile action phase
     if player.tile == 24: #on go to jail 
         
-        player.wait(0.5, 0.8, quickTiming,randomTime)#-----------------------------------------------------------------------------
+        player.wait(0.5, 0.8, quickTiming, randomTime)#-----------------------------------------------------------------------------
 
         player.tile = 8 #reset player position to jail
         player.path.append(8)
@@ -285,7 +287,7 @@ def tradeRound(player):
     # sys.stdout.write("player " + str(player.id) + " got it" +"\n")
 
     player.playChance(players,b, report)
-    time.sleep(1) # slight delay so printing doesn't go by too fast
+    # time.sleep(1) # slight delay so printing doesn't go by too fast
     t_lock.release()
     # sys.stdout.write("player " + str(player.id) + " released it" +"\n")
 
@@ -381,18 +383,18 @@ def payout(players):
         if player.money == winningAmount:
             winners.append(player)
 
-    if len(winners) > 1: # if theres a tie on money compare number of properties
-        winningPropAmount = 0
-        for player in winners: # finds the player with the most properties out of the players who tied for most money
-            propAmount = len(player.properties)
-            if propAmount >= winningPropAmount:
-                winningPropAmount = propAmount
+    # if len(winners) > 1: # if theres a tie on money compare number of properties
+    #     winningPropAmount = 0
+    #     for player in winners: # finds the player with the most properties out of the players who tied for most money
+    #         propAmount = len(player.properties)
+    #         if propAmount >= winningPropAmount:
+    #             winningPropAmount = propAmount
         
-        propWinners = []
-        for player in winners: # test for property tie
-            if len(player.properties) == winningPropAmount:
-                propWinners.append(player)
-        winners = propWinners
+    #     propWinners = []
+    #     for player in winners: # test for property tie
+    #         if len(player.properties) == winningPropAmount:
+    #             propWinners.append(player)
+    #     winners = propWinners
 
     if len(winners) > 1:
         for player in winners:
@@ -401,6 +403,11 @@ def payout(players):
         for player in winners:
             player.winner = "Winner"
 
+    for player in players:
+        if player.winner == "Winner":
+            player.points += 1.0
+        elif player.winner == "Tie":
+            player.points += 0.5
 
 #prints out stats from the game <- possible logging class? 
 #maybe straight to google drive? messy but dope
@@ -446,11 +453,26 @@ def printCSV():
 ########################
 #    CHANGE HEADER     #
 ########################
-        output.writerow(['ID','Player Type','Winner?','Total Money','Money from GO','Money from Chest','Money from properties','Starting Position','Number of Moves','Path','Times Passed Go','Times in Jail','Properties','Chest Cards', "Chest Card Payout", "Total Wait"])
+        output.writerow(['ID',
+                        'Player Type',
+                        'Winner?',
+                        'Points',
+                        'Total Money',
+                        'Money from GO',
+                        'Money from Chest',
+                        'Money from properties',
+                        'Starting Position',
+                        'Number of Moves',
+                        'Path','Times Passed Go',
+                        'Times in Jail',
+                        'Properties',
+                        'Chest Cards', 
+                        'Chest Card Payout', 
+                        'Total Wait'])
 ########################
 
         output.writerow([''])
-        output.writerow(["","round", str(gameCount) ,gameTime, "seconds", quickTiming, "x speed", "randomized time:", randomTime])
+        output.writerow(["","game", str(gameCount) ,gameTime, "seconds", quickTiming, "x speed", "randomized time:", randomTime])
 
         for player in players:
             playerChestCardsID = []
@@ -460,7 +482,23 @@ def printCSV():
 ########################
 #    CHANGE DATA       #
 ########################
-            output.writerow([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout,player.totalWaitTime])
+            output.writerow([player.id, 
+                            player.type, 
+                            player.winner,
+                            player.points, 
+                            player.money, 
+                            player.mGo, 
+                            player.mChest, 
+                            player.mProp, 
+                            player.startingPos, 
+                            player.numRoles, 
+                            player.path, 
+                            player.timesPassedGo, 
+                            player.timesJailed, 
+                            player.properties,
+                            playerChestCardsID, 
+                            player.commChestPayout,
+                            player.totalWaitTime])
 ########################
 
         
@@ -474,7 +512,7 @@ def printCSV():
     # return df
     details = []
     for player in players:
-        details.append([player.id, player.type, player.winner, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout,player.totalWaitTime])
+        details.append([player.id, player.type, player.winner,player.points, player.money, player.mGo, player.mChest, player.mProp, player.startingPos, player.numRoles, player.path, player.timesPassedGo, player.timesJailed, player.properties,playerChestCardsID, player.commChestPayout,player.totalWaitTime])
     return details
 
 def lezgo():
