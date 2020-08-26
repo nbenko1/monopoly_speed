@@ -87,6 +87,7 @@ randomTime = False
 quickTiming = 1.0
 OfficialStartTime = 0.0
 OfficialEndTime = 0.0
+trading = False
 
 
 #sets up and runs a game instance
@@ -94,13 +95,15 @@ OfficialEndTime = 0.0
 ####################################################################################################################
 """
 #this method sets up and runs games depending on the input
-def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timing, randomFactor, buyStage, tradeStage, points,
+def run(numPlayers, startingPos, length, gameNumber, post, types, _trading, timing, randomFactor, buyStage, tradeStage, points,
         player1Chest, player2Chest, player3Chest, player4Chest,
         player1Chance, player2Chance, player3Chance, player4Chance):
 
     chooseChest = [player1Chest, player2Chest, player3Chest, player4Chest]
     chooseChance = [player1Chance, player2Chance, player3Chance, player4Chance]
 
+    global trading
+    trading = _trading
     global bs # array with lengths for each buying stage
     bs = buyStage
     global ts # array of lengths for each trading stage
@@ -468,30 +471,48 @@ def printCSV():
 ########################
 #    CHANGE HEADER     #
 ########################
-        output.writerow(['ID',
-                        'Player Type',
-                        'Winner?',
-                        'Points',
-                        'Total Money',
-                        'Money from GO',
-                        'Money from Chest',
-                        'Money from properties',
-                        'Starting Position',
-                        'Number of Moves',
-                        'Path','Times Passed Go',
-                        'Times in Jail',
-                        'Properties',
-                        'Chest Cards', 
-                        'Chest Card Payout', 
-                        'Total Wait',
-                        'Chance Card Round 1',
-                        'Chance Card Round 2',
-                        'Chance Card Round 3',
-                        'Chance Card Round 4'])
+        if trading:
+            output.writerow(['ID',
+                            'Player Type',
+                            'Winner?',
+                            'Points',
+                            'Total Money',
+                            'Money from GO',
+                            'Money from Chest',
+                            'Money from properties',
+                            'Starting Position',
+                            'Number of Moves',
+                            'Path','Times Passed Go',
+                            'Times in Jail',
+                            'Properties',
+                            'Chest Cards', 
+                            'Chest Card Payout', 
+                            'Total Wait',
+                            'Chance Card Round 1',
+                            'Chance Card Round 2',
+                            'Chance Card Round 3',
+                            'Chance Card Round 4'])
+        else:
+            output.writerow(['ID',
+                            'Player Type',
+                            'Winner?',
+                            'Points',
+                            'Total Money',
+                            'Money from GO',
+                            'Money from Chest',
+                            'Money from properties',
+                            'Starting Position',
+                            'Number of Moves',
+                            'Path','Times Passed Go',
+                            'Times in Jail',
+                            'Properties',
+                            'Chest Cards', 
+                            'Chest Card Payout', 
+                            'Total Wait'])
 ########################
 
         output.writerow([''])
-        output.writerow(["","game", str(gameCount) ,gameTime, "seconds", quickTiming, "x speed", "randomized time:", randomTime])
+        output.writerow(["","game", str(gameCount) ,gameTime, "seconds", quickTiming, "x speed", "randomized time:", randomTime, "trading?:", trading])
 
         for player in players:
             playerChestCardsID = []
@@ -504,27 +525,46 @@ def printCSV():
 ########################
 #    CHANGE DATA       #
 ########################
-            output.writerow([player.id, 
-                            player.type, 
-                            player.winner,
-                            player.points, 
-                            player.money, 
-                            player.mGo, 
-                            player.mChest, 
-                            player.mProp, 
-                            player.startingPos, 
-                            player.numRoles, 
-                            player.path, 
-                            player.timesPassedGo, 
-                            player.timesJailed, 
-                            player.properties,
-                            playerChestCardsID, 
-                            player.commChestPayout,
-                            player.totalWaitTime,
-                            chanceCardDetails[0],
-                            chanceCardDetails[1],
-                            chanceCardDetails[2],
-                            chanceCardDetails[3],])
+            if trading: # adds trading round details
+                output.writerow([player.id, 
+                                player.type, 
+                                player.winner,
+                                player.points, 
+                                player.money, 
+                                player.mGo, 
+                                player.mChest, 
+                                player.mProp, 
+                                player.startingPos, 
+                                player.numRoles, 
+                                player.path, 
+                                player.timesPassedGo, 
+                                player.timesJailed, 
+                                player.properties,
+                                playerChestCardsID, 
+                                player.commChestPayout,
+                                player.totalWaitTime,
+                                chanceCardDetails[0],
+                                chanceCardDetails[1],
+                                chanceCardDetails[2],
+                                chanceCardDetails[3]])
+            else:
+                output.writerow([player.id, 
+                                player.type, 
+                                player.winner,
+                                player.points, 
+                                player.money, 
+                                player.mGo, 
+                                player.mChest, 
+                                player.mProp, 
+                                player.startingPos, 
+                                player.numRoles, 
+                                player.path, 
+                                player.timesPassedGo, 
+                                player.timesJailed, 
+                                player.properties,
+                                playerChestCardsID, 
+                                player.commChestPayout,
+                                player.totalWaitTime])
 ########################
 
         

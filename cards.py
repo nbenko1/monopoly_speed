@@ -94,8 +94,9 @@ class CommChestDeck:
             6: [7, 1, "set", 3000, 1, pink],
             7: [8, 1, "set", 3000, 1, orange],
             8: [9, 1, "set", 2000, 1, utilities],
-            9: [10, 2, "anySet", 1000, 9, brown, lblue, pink, orange, red, yellow, green, dblue, utilities],   
-            10: [11, 1, "rail", 1000, 4, railroads]
+            9: [10, 1, "anySet", 1000, 9, brown, lblue, pink, orange, red, yellow, green, dblue, utilities],   
+            10: [11, 1, "rail", 1000, 4, railroads],
+            11: [12, 1, "oneSet", 1000, 9, brown, lblue, pink, orange, red, yellow, green, dblue, utilities]
         }
 
     def pullChestCards(self):
@@ -155,7 +156,7 @@ class CommChestDeck:
                         player.commChestPayout.append([card[0], card[3]])
                         if report: print("\n             +", card[3], "for set\n")
                     
-            if card[2] == "anySet":
+            if card[2] == "anySet" or card[2] == "oneSet":
                 #print("CARD", card[2])
                 for i in range(5, len(card)):
                     fullSet = True
@@ -165,7 +166,9 @@ class CommChestDeck:
                         player.money += card[3] 
                         player.mChest += card[3]
                         player.commChestPayout.append([card[0], card[3]])
-                        if report: print("             +", card[3], "for anySet\n")
+                        if report and card[2] == "anySet": print("             +", card[3], "for anySet\n")
+                        if report and card[2] == "oneSet": print("             +", card[3], "for one set\n")
+                        if card[0] == 12: break
 
             if card[2] == "rail":
                 # print("CARD", card[2])

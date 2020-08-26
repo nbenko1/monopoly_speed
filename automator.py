@@ -15,10 +15,10 @@ numberOfPlayers = 3
 startPosition = [0,0,0]
 
 #how long the game will go in seconds - only if trading == False
-gameLength = 45.0
+gameLength = 80.0
 
 #number of games to play
-numberOfRounds = 1
+numberOfRounds = 2
 
 #real time print statements from the game to the terminal
 printStatements = True
@@ -33,7 +33,7 @@ playerTypes = ["g","s","c"]
 # if == 1.0 then it will play at normal speed
 # so == 2 is 2x normal speed, 3 is 3x and so on
 # this does not affect the trading round - which will always take a total of 20 seconds per game
-timeMultiplier = 3.0
+timeMultiplier = 4.0
 
 # if True, some randomness will be implemented into the timings
 # if False, each action will take the same amount of time each instance
@@ -52,14 +52,14 @@ buyStage = [30.0,20.0,20.0,10.0]
 # set to [0] if you want the cards to be random
 
 #must have 4 entries
-player1Chance = [5,5,5,5]
-player2Chance = [3,3,3,4]
+player1Chance = [0]
+player2Chance = [0]
 player3Chance = [0]
 player4Chance = [0]
 
 # must have 3 entries
-player1Chest = [1,2,3]
-player2Chest = [4,5,6]
+player1Chest = [0]
+player2Chest = [0]
 player3Chest = [0]
 player4Chest = [0]
 
@@ -75,17 +75,20 @@ player4Chest = [0]
 
 #COMMUNITY CHEST
 # id    freq   reward         details
-# [1,    1,    2000, 3, brown, lblue, dblue], # need to look at card
-# [2,    1,    2000, 2, yellow, dblue],
-# [3,    1,    2000, 3, pink, orange, green],
-# [4,    1,    4000, 1, red],
-# [5,    1,    4000, 1, green],
-# [6,    1,    4000, 1, yellow],
-# [7,    1,    3000, 1, pink],
-# [8,    1,    3000, 1, orange],
-# [9,    1,    2000, 1, utilities],
-# [10,   2,    1000, 9, brown, lblue, pink, orange, red, yellow, green, dblue, utilities],   
-# [11,   1,    1000, 4, railroads]
+# [1,    1,    2000, 3, At least one property in   ::::  brown, lblue, dblue],
+# [2,    1,    2000, 2, At least one of each   ::::   yellow, dblue],
+# [3,    1,    2000, 3, At least one property in   ::::  pink, orange, green],
+# [4,    1,    4000, 1, Full Set   ::::   red],
+# [5,    1,    4000, 1, Full Set   ::::   green],
+# [6,    1,    4000, 1, Full Set   ::::   yellow],
+# [7,    1,    3000, 1, Full Set   ::::   pink],
+# [8,    1,    3000, 1, Full Set   ::::   orange],
+# [9,    1,    2000, 1, Full Set   ::::   utilities],
+# [10,   1,    1000, 9, For each complete property   ::::   brown, lblue, pink, orange, red, yellow, green, dblue, utilities],   
+# [11,   1,    1000, 4, For each railroad   ::::    railroads]
+# [12,   1,    1000, 9, One complete property   ::::    brown, lblue, pink, orange, red, yellow, green, dblue, utilities]
+
+
 
 
 
@@ -102,7 +105,6 @@ for i in range(numberOfPlayers):
 
 
 quickTiming = timeMultiplier # changes the name to avoid confusion - but probably makes it more confusing for everyone else
-gameLength = gameLength/quickTiming # speeds up game if indicated
 if quickTiming != 1.0:  # this loop speeds up the timing for the trading rounds
     gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
     if trading:
@@ -149,7 +151,10 @@ for gameNumber in range(1,numberOfRounds+1):
     14: chest cards
     15: chest card payouts
     16: total wait
-    17: chance card log
+    17: chance card round 1
+    18: chance card round 2
+    19: chance card round 3
+    20: chance card round 4
     '''
 
     for i in range(numberOfPlayers):
@@ -204,7 +209,10 @@ df.to_csv(r'reports\conservative_path.csv')
 
 player_result = pandas.concat(frames) #combines all the games details
 print(winnerList)
-player_result.to_csv(r'reports\report.csv')
+try:
+    player_result.to_csv(r'reports\report.csv')
+except: 
+    print("Failed to export: report.csv already open!")
 
 
 

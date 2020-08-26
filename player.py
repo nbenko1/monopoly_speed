@@ -230,7 +230,7 @@ class Player:
                 for player in players:
                     if prop in player.properties and player.id != self.id:
                         if report: print("player", self.id, "is swapping property", leastWanted, "for property", prop, "from player", player.id)
-                        playerLog = "USED CARD 3 and is swapping property %d for property %d from player %d " % (leastWanted, prop, player.id)
+                        playerLog = "USED CARD 3 and swapped property %d for property %d from player %d " % (leastWanted, prop, player.id)
                         #checks if the player has a cancel card
                         for card in player.chance:
                             if card[0] == 2: # if the player has a cancel card
