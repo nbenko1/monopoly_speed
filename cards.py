@@ -19,6 +19,16 @@ def pullCards(deck, num):
                 value[1] -= 1
     return cards
 
+def pullSpecCards(deck, num, IDS):
+    cards = []
+    for ID in IDS:
+        ID -= 1 # cause im dum
+        cards.append(deck[ID]) # add card to player list
+        deck[ID][1] -= 1 # take card out of deck
+    return cards
+
+
+
 class ChanceDeck:
     def __init__(self):
         self.Cards = {
@@ -29,6 +39,10 @@ class ChanceDeck:
             3: [4, 4, "keep", "steal any one property from another player"],
             4: [5 ,5, "use", "choose any property owned by another player and immediately return it to the board"]
         }
+
+    def pullSpecChanceCards(self, IDS):
+        return pullSpecCards(self.Cards, 4, IDS)
+
 
     def pullChanceCards(self):
         # print("distributing chance cards")
@@ -87,6 +101,9 @@ class CommChestDeck:
     def pullChestCards(self):
         # print("distributing chest cards")
         return pullCards(self.Cards, 3)
+
+    def pullSpecChestCards(self, IDS):
+        return pullSpecCards(self.Cards, 3, IDS)
 
     #calculate payout based on cards 
 

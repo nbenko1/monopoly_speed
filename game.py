@@ -94,7 +94,12 @@ OfficialEndTime = 0.0
 ####################################################################################################################
 """
 #this method sets up and runs games depending on the input
-def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timing, randomFactor, buyStage, tradeStage, points):
+def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timing, randomFactor, buyStage, tradeStage, points,
+        player1Chest, player2Chest, player3Chest, player4Chest,
+        player1Chance, player2Chance, player3Chance, player4Chance):
+
+    chooseChest = [player1Chest, player2Chest, player3Chest, player4Chest]
+    chooseChance = [player1Chance, player2Chance, player3Chance, player4Chance]
 
     global bs # array with lengths for each buying stage
     bs = buyStage
@@ -143,7 +148,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
     if not report: print("playing...")
 
     #give players money and cards
-    gameSetup(players)
+    gameSetup(players, chooseChest, chooseChance)
 
     #prints greeting
     if report:lezgo() 
@@ -170,7 +175,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
     payout(players)
 
     #prints the stats of the game
-    # if report: printStats()
+    if report: printStats()
 
     #saves stats to CSV
     stats = printCSV()
@@ -180,14 +185,24 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, trading, timin
 
 
 
-def gameSetup(players):
+def gameSetup(players, chooseChest, chooseChance):
     #initialize player(s)
-    for player in players:
+    for i in range(len(players)):
+        player = players[i]
         player.money += 5000 # starts with 5000
-        player.chance = chanceDeck.pullChanceCards()
+
+        if len(chooseChest[i]) == 3: 
+            print("choosing specific Chest cards")
+            player.commChest = commDeck.pullSpecChestCards(chooseChest[i])
+        else: player.commChest = commDeck.pullChestCards()
+
+        if len(chooseChance[i]) == 4: 
+            print("choosing specific Chance cards")
+            player.chance = chanceDeck.pullSpecChanceCards(chooseChance[i])
+        else: player.chance = chanceDeck.pullChanceCards()
         for card in player.chance:
             card[1] == 1 # set status of each card to unused
-        player.commChest = commDeck.pullChestCards()
+        
 
 
 
@@ -468,7 +483,11 @@ def printCSV():
                         'Properties',
                         'Chest Cards', 
                         'Chest Card Payout', 
-                        'Total Wait'])
+                        'Total Wait',
+                        'Chance Card Round 1',
+                        'Chance Card Round 2',
+                        'Chance Card Round 3',
+                        'Chance Card Round 4'])
 ########################
 
         output.writerow([''])
@@ -478,6 +497,9 @@ def printCSV():
             playerChestCardsID = []
             for i in range(len(player.commChest)):
                 playerChestCardsID.append(player.commChest[i][0])
+            chanceCardDetails = []
+            for detail in player.chanceUsed: chanceCardDetails.append(detail)
+
 
 ########################
 #    CHANGE DATA       #
@@ -498,7 +520,11 @@ def printCSV():
                             player.properties,
                             playerChestCardsID, 
                             player.commChestPayout,
-                            player.totalWaitTime])
+                            player.totalWaitTime,
+                            chanceCardDetails[0],
+                            chanceCardDetails[1],
+                            chanceCardDetails[2],
+                            chanceCardDetails[3],])
 ########################
 
         

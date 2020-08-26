@@ -53,6 +53,7 @@ class Player:
         self.numRoles = 0
         self.spaceCovered = 0
         self.points = 0.0
+        self.chanceUsed = []
 
         #money breakdown
         self.mGo = 0 #money from passing GO
@@ -153,7 +154,6 @@ class Player:
 
         self.totalWaitTime = self.totalWaitTime + wait
 
-
     def playChance(self, players, b, report):
 
         # print("1")
@@ -164,6 +164,7 @@ class Player:
 
         if len(self.chance) == 0 or len(self.chance) == numCancel: # if there are only cancel cards
             print("player", self.id, "has no playable cards")
+            self.chanceUsed.append("ran out of cards to play")
             return
         # print("2")       
 
@@ -173,6 +174,8 @@ class Player:
             card = random.choice(self.chance)
         # print("3")
         self.chance.remove(card) # remove chosen card from hand
+
+        playerLog = ""
  
         if report: print("\n", "  ---- Trading Round for Player", self.id,"----")
         if report: print("playing card:", card)
@@ -188,12 +191,18 @@ class Player:
 
                 if prop == tile[0] and tile[1] == 0: # if the properties match and it is available
                     if report: print("Player", self.id, "chose", prop, "from the board")
+
+                    playerLog = "USED CARD 1 and chose %d from the board" % (prop)
+
                     self.properties.append(prop) #add property to player
                     tile[1] = self.id # remove from board
                     found = True
                     break
-            if not found and report: print("player", self.id, "used card", card[0], "but there were no unowned properties")
-    
+            if not found: 
+                if report: print("player", self.id, "used card", card[0], "but there were no unowned properties")
+
+                playerLog = "USED CARD 1 but there were no unowned properties on the board"
+        
 
         if card[0] == 2: #cancel a chance card played against you
             print("if this text appears than skynet is online and we're all doomed")
@@ -206,6 +215,8 @@ class Player:
 
             if leastWanted == -1: 
                 if report: print("player", self.id, "has no properties to trade")
+                playerLog = "USED CARD 3 but has no properties to trade"
+                self.chanceUsed.append(playerLog)
                 return
 
             for prop in self.properties: # removes all properties that are already owned
@@ -219,11 +230,14 @@ class Player:
                 for player in players:
                     if prop in player.properties and player.id != self.id:
                         if report: print("player", self.id, "is swapping property", leastWanted, "for property", prop, "from player", player.id)
+                        playerLog = "USED CARD 3 and is swapping property %d for property %d from player %d " % (leastWanted, prop, player.id)
                         #checks if the player has a cancel card
                         for card in player.chance:
                             if card[0] == 2: # if the player has a cancel card
                                 player.chance.remove(card)
                                 if report: print("the card was canceled!")
+                                playerLog += ("CANCELED")
+                                self.chanceUsed.append(playerLog)
                                 return
 
                         #give self wanted property
@@ -235,9 +249,11 @@ class Player:
                         self.properties.remove(leastWanted) # remove from player
                         player.properties.append(leastWanted) # give to self
                         b.getTile(leastWanted)[1] = player.id # change owner on the board
+                        self.chanceUsed.append(playerLog)
                         return
             
             if report: print("player", self.id, "looked for a card but couldn't find one")
+            playerLog = "USED CARD 3 but couldn't swap"
 
         if card[0] == 4: #steal from another player
             if report: print("starting card 4 process - steal from another player")
@@ -247,24 +263,29 @@ class Player:
                 for player in players:
                     if prop in player.properties and player.id != self.id:
                         if report: print("player", self.id, "is stealing property", prop, "from player", player.id)
+                        playerLog = "USED CARD 4 and stole property %d from player %d " % (prop, player.id)
 
                         for card in player.chance:
                             if card[0] == 2: # if the player has a cancel card
                                 player.chance.remove(card)
                                 if report: print("the card was canceled")
+                                playerLog += ("CANCELED")
+                                self.chanceUsed.append(playerLog)
                                 return
                         #give self wanted property
                         player.properties.remove(prop) # remove from player
                         self.properties.append(prop) # give to self
                         b.getTile(prop)[1] = self.id # change owner on the board
+                        self.chanceUsed.append(playerLog)
                         return
 
             if report: print("player", self.id, "couldn't find a card to steal")
+            playerLog = "USED CARD 4 but couldn't find a card to steal"
     
         if card[0] == 5: #return any property owned by another player to the board
             if report: print("starting card 5 process - return prop from another player")
             #find player with most money
-            propCount = -1
+            propCount = -1 # dear god change the whole thing hurts my eyes
             p0 = Player(-1)
             chosenPlayer = p0
             if len(players) >= 2: # makes sure theres more than one player
@@ -274,32 +295,35 @@ class Player:
                         chosenPlayer = player
             else: 
                 if report: print("Not enough players to choose from")
+                playerLog = "USED CARD 5 but there weren enough players to choose from"
+                self.chanceUsed.append(playerLog)
                 return
 
             if chosenPlayer == p0:
                 if report: print("no players had any properties")
             else:
                 #do nothing if the player has a cancel card
-                cancel = False
                 for card in chosenPlayer.chance:
                     if card[0] == 2: # if the player has a cancel card
                         chosenPlayer.chance.remove(card)
                         if report: print("the card was canceled")
-                        cancel = True
+                        playerLog += "USED CARD 5 but it was CANCELED"
+                        self.chanceUsed.append(playerLog)
+                        return
                 
                 #otherwise return their most valuable card to the board
-                if not cancel: # the card was not canceled
-                    wantedProperties = chosenPlayer.findWantedProperty()
+                wantedProperties = chosenPlayer.findWantedProperty()
 
-                    for prop in wantedProperties: # for each property
-                        if prop in chosenPlayer.properties: # if the player owns the property
-                 
-                            chosenPlayer.properties.remove(prop) # remove the property from the player 
-                            boardPlace = b.getTile(prop) # loop through each board tile
-                            boardPlace[1] = 0 # set status to unowned
-                            if report: print("returned property", prop, "from player", chosenPlayer.id, "to the board")
-                            break
-
+                for prop in wantedProperties: # for each property
+                    if prop in chosenPlayer.properties: # if the player owns the property
+                
+                        chosenPlayer.properties.remove(prop) # remove the property from the player 
+                        boardPlace = b.getTile(prop) # loop through each board tile
+                        boardPlace[1] = 0 # set status to unowned
+                        if report: print("returned property", prop, "from player", chosenPlayer.id, "to the board")
+                        playerLog = "USED CARD 5 and returned property %d from player %d to the board" % (prop,chosenPlayer.id)
+                        break
+        self.chanceUsed.append(playerLog)
 
 
 

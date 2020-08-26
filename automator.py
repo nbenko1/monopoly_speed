@@ -18,7 +18,7 @@ startPosition = [0,0,0]
 gameLength = 45.0
 
 #number of games to play
-numberOfRounds = 2
+numberOfRounds = 1
 
 #real time print statements from the game to the terminal
 printStatements = True
@@ -49,6 +49,43 @@ buyStage = [30.0,20.0,20.0,10.0]
 
 #---------------------------------------------#
 
+# set to [0] if you want the cards to be random
+
+#must have 4 entries
+player1Chance = [5,5,5,5]
+player2Chance = [3,3,3,4]
+player3Chance = [0]
+player4Chance = [0]
+
+# must have 3 entries
+player1Chest = [1,2,3]
+player2Chest = [4,5,6]
+player3Chest = [0]
+player4Chest = [0]
+
+
+#CHANCE
+# id  freq             effect
+#[1,    2,     "take any unowned property"],
+#[2,    2,     "cancel a chance card that is played against you"],
+#[3,    3,     "swap any one of your properties with any one of anothers players properties"],
+#[4,    4,     "steal any one property from another player"],
+#[5,    5,     "choose any property owned by another player and immediately return it to the board"]
+
+
+#COMMUNITY CHEST
+# id    freq   reward         details
+# [1,    1,    2000, 3, brown, lblue, dblue], # need to look at card
+# [2,    1,    2000, 2, yellow, dblue],
+# [3,    1,    2000, 3, pink, orange, green],
+# [4,    1,    4000, 1, red],
+# [5,    1,    4000, 1, green],
+# [6,    1,    4000, 1, yellow],
+# [7,    1,    3000, 1, pink],
+# [8,    1,    3000, 1, orange],
+# [9,    1,    2000, 1, utilities],
+# [10,   2,    1000, 9, brown, lblue, pink, orange, red, yellow, green, dblue, utilities],   
+# [11,   1,    1000, 4, railroads]
 
 
 
@@ -80,7 +117,9 @@ for gameNumber in range(1,numberOfRounds+1):
 
 
 
-    details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming, randomTime, buyStage, tradeStage, points)
+    details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming, randomTime, buyStage, tradeStage, points, 
+                       player1Chest, player2Chest, player3Chest, player4Chest,
+                       player1Chance, player2Chance, player3Chance, player4Chance)
     df = pandas.read_csv('output.csv', index_col='ID') # creates a dataframe by reading the output from the previous game
     frames.append(df)
 
@@ -110,6 +149,7 @@ for gameNumber in range(1,numberOfRounds+1):
     14: chest cards
     15: chest card payouts
     16: total wait
+    17: chance card log
     '''
 
     for i in range(numberOfPlayers):
