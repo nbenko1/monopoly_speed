@@ -18,7 +18,7 @@ startPosition = [0,0,0]
 gameLength = 80.0
 
 #number of games to play
-numberOfRounds = 2
+numberOfRounds = 1
 
 #real time print statements from the game to the terminal
 printStatements = True
@@ -33,7 +33,7 @@ playerTypes = ["g","s","c"]
 # if == 1.0 then it will play at normal speed
 # so == 2 is 2x normal speed, 3 is 3x and so on
 # this does not affect the trading round - which will always take a total of 20 seconds per game
-timeMultiplier = 4.0
+timeMultiplier = 3.0
 
 # if True, some randomness will be implemented into the timings
 # if False, each action will take the same amount of time each instance
@@ -104,7 +104,7 @@ for i in range(numberOfPlayers):
     points.append(0)
 
 
-quickTiming = timeMultiplier # changes the name to avoid confusion - but probably makes it more confusing for everyone else
+quickTiming = timeMultiplier # changes the name to avoid confusion - but probably makes it more confusing...
 if quickTiming != 1.0:  # this loop speeds up the timing for the trading rounds
     gameLength = round(gameLength/timeMultiplier,2) # adjusts for time drift
     if trading:

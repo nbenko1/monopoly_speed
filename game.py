@@ -421,7 +421,7 @@ def payout(players):
         for player in winners:
             player.winner = "Winner"
 
-    for player in players:
+    for player in players: # adds points for each player
         if player.winner == "Winner":
             player.points += 1.0
         elif player.winner == "Tie":
@@ -547,7 +547,7 @@ def printCSV():
                                 chanceCardDetails[1],
                                 chanceCardDetails[2],
                                 chanceCardDetails[3]])
-            else:
+            else: # for when theres no buying rounds
                 output.writerow([player.id, 
                                 player.type, 
                                 player.winner,
