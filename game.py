@@ -157,13 +157,13 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, _trading, timi
     if report:lezgo() 
 
     # starts timers
-    global curTime 
+    global curTime # starts current timer
     curTime = time.time() 
-    global endTime 
+    global endTime  # calculates when the game should end
     endTime = curTime + length
-    global startTime
+    global startTime # start time updated for each round
     startTime = curTime
-    global OfficialStartTime
+    global OfficialStartTime # saved to calculate how long the game lasted
     OfficialStartTime = curTime
     
 
@@ -172,7 +172,7 @@ def run(numPlayers, startingPos, length, gameNumber, post, types, _trading, timi
     else: noTradeStart()
 
     global OfficialEndTime
-    OfficialEndTime = time.time() # records end time
+    OfficialEndTime = time.time() # saves end time
 
     #gives rewards at the end of the game
     payout(players)
@@ -194,12 +194,12 @@ def gameSetup(players, chooseChest, chooseChance):
         player = players[i]
         player.money += 5000 # starts with 5000
 
-        if len(chooseChest[i]) == 3: 
+        if len(chooseChest[i]) == 3: #if there are custom community chest cards
             print("choosing specific Chest cards")
             player.commChest = commDeck.pullSpecChestCards(chooseChest[i])
         else: player.commChest = commDeck.pullChestCards()
 
-        if len(chooseChance[i]) == 4: 
+        if len(chooseChance[i]) == 4: # if there are custom chance cards
             print("choosing specific Chance cards")
             player.chance = chanceDeck.pullSpecChanceCards(chooseChance[i])
         else: player.chance = chanceDeck.pullChanceCards()
@@ -219,11 +219,11 @@ def gameSetup(players, chooseChest, chooseChance):
 
    
 #runs the game as one long buying round
-def noTradeGame(player):
+def noTradeGame(player): # each player thread runs this method independently
     global curTime 
-    curTime = time.time()
+    curTime = time.time() # updates timer
     global endTime 
-    player.tile = player.startingPos
+    player.tile = player.startingPos # sets starting position
     
     while curTime <= endTime:
         buyRound(player, endTime)
@@ -547,7 +547,7 @@ def printCSV():
                                 chanceCardDetails[1],
                                 chanceCardDetails[2],
                                 chanceCardDetails[3]])
-            else: # for when theres no buying rounds
+            else: # for when theres no trading rounds
                 output.writerow([player.id, 
                                 player.type, 
                                 player.winner,

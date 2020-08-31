@@ -1,7 +1,6 @@
 import game
 import pandas
 import os
-from collections import Counter
 
 # THIS IS WHERE YOU WANT TO BE #
 
@@ -18,22 +17,21 @@ startPosition = [0,0,0]
 gameLength = 80.0
 
 #number of games to play
-numberOfRounds = 1
+numberOfRounds = 100
 
 #real time print statements from the game to the terminal
 printStatements = True
 
 #True: separate buying and trading rounds
 #False: one long buying round
-trading = True
+trading = False
 
 #type of players
-playerTypes = ["g","s","c"]
+playerTypes = ["g","g","g"]
 
-# if == 1.0 then it will play at normal speed
-# so == 2 is 2x normal speed, 3 is 3x and so on
+#speeds up 
 # this does not affect the trading round - which will always take a total of 20 seconds per game
-timeMultiplier = 3.0
+timeMultiplier = 4.0
 
 # if True, some randomness will be implemented into the timings
 # if False, each action will take the same amount of time each instance

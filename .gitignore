@@ -4,6 +4,15 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 
+reports
+test_card.py
+test_game.py
+test_player.py
+
+
+
+
+
 # User-specific files
 *.rsuser
 *.suo
