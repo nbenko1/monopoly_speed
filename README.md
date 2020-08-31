@@ -11,9 +11,16 @@ To run the simulator, go into the run_game.py file and configure a game using th
 ## File Descriptions:
 
 **run_game.py** Dashboard to configure and run simulations
+
 **game.py** This file handles the actual gameplay, creating player threads and playing on a shared board object
+
 **cards.py** Classes for the chance, and community chest card decks
+
 **board.py** board class that stores property ownership data
+
 **player.py** default player class that handles how the player interacted with the board and saves all related information
+
 **conPlayer.py** player that only moves around the board without buying any properties
+
 **strategicPlayer.py** player makes slighly more complex decisions on which properties to buy
+
