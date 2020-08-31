@@ -5,11 +5,13 @@
 
 
 reports
+
+
 test_card.py
 test_game.py
 test_player.py
 
-
+*.csv
 
 
 
