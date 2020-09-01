@@ -13,7 +13,7 @@ Once the simulation is complete, it will create a number of CSV files that repor
 
 **run_game.py** Dashboard to configure and run simulations  <--- this is what you want to look at <3
 
-**game.py** This file handles the actual gameplay, creating player threads and playing on a shared board object
+**game.py** This file handles the actual gameplay, creating player threads that all interact with a shared board object
 
 **cards.py** Classes for the chance, and community chest card decks
 
