@@ -10,30 +10,34 @@ import os
 #number of players
 numberOfPlayers = 3
 
-#starting position for each player
+#starting position for each player (either 0 or 16)
 startPosition = [0,0,0]
 
-#how long the game will go in seconds - only if trading == False
+#how long the game will go in seconds  
+#only matters if trading == False
 gameLength = 80.0
 
 #number of games to play
-numberOfRounds = 100
+numberOfRounds = 1
 
 #real time print statements from the game to the terminal
 printStatements = True
 
-#True: separate buying and trading rounds
+#True: separate buying and trading rounds (real game)
 #False: one long buying round
 trading = False
 
 #type of players
-playerTypes = ["g","g","g"]
+# "g" -  greedy player, buys all available properties
+# "c" -  conservative player, moves around the board collecting money from GO without buying properties
+# "s" -  strategic player, similar to greedy, but makes better decisions about buying properties
+playerTypes = ["g","c","s"]
 
-#speeds up 
-# this does not affect the trading round - which will always take a total of 20 seconds per game
-timeMultiplier = 4.0
+# speeds up the game
+# this does not affect the trading round - which will always take 5 seconds per round
+timeMultiplier = 2.0
 
-# if True, some randomness will be implemented into the timings
+# if True, some randomness will be implemented into how long each action takes
 # if False, each action will take the same amount of time each instance
 randomTime = True
 
@@ -114,8 +118,6 @@ if quickTiming != 1.0:  # this loop speeds up the timing for the trading rounds
 
 # runs a game
 for gameNumber in range(1,numberOfRounds+1):
-
-
 
     details = game.run(numberOfPlayers, startPosition, gameLength, gameNumber, printStatements, playerTypes, trading, quickTiming, randomTime, buyStage, tradeStage, points, 
                        player1Chest, player2Chest, player3Chest, player4Chest,
