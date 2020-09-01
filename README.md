@@ -7,7 +7,7 @@ This is a research project under the math department of Southwestern University
 ## Set Up
 
 To run the simulator, go into the run_game.py file and configure a simulation using the variables at the top of the file.
-Once the simulation is complete, it will create a number of CSV files that report all the details of each game.
+Once the simulation is complete, it will create a number of CSV files that report all the details of the games that were played. And if you want to watch it work, you can enable real-time print statements that explain whats happening in the game.
 
 ## File Descriptions:
 
