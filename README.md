@@ -1,6 +1,6 @@
 Monopoly Speed Simulator
 ======
-**Monopoly Speed** is a version of Monopoly where instead of taking turns, all players move around the board and buy properties at the same time, relying on a timer to swap between a buying round, and a trading round. This software was built to allow the user to set up custom simulations in order to test play styles and tactics in order to study the effect of different configurations on outcomes.
+**Monopoly Speed** is a version of Monopoly where instead of taking turns, all players move around the board and buy properties at the same time, relying on a timer to swap between a buying round, and a trading round. This software was built to allow the user to set up custom simulations in order to test different play styles and tactics in order to study the effect of different configurations on outcomes.
 
 This is a research project under the math department of Southwestern University
 
